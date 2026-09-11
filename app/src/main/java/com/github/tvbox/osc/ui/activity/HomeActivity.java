@@ -125,39 +125,8 @@ public class HomeActivity extends BaseActivity {
     boolean useCacheConfig = false;
     @Override
     protected void init() {
-        // ===== VIP PAY WALL START =====
-        if (!AuthUtil.isActivated()) {
-            String deviceId = AuthUtil.getDeviceId(this);
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.VERTICAL);
-            layout.setPadding(50,40,50,10);
-            TextView tv = new TextView(this);
-            tv.setText("机器码:\n" + deviceId + "\n\n联系卖家获取激活码");
-            tv.setTextIsSelectable(true);
-            tv.setTextSize(16);
-            EditText input = new EditText(this);
-            input.setHint("输入8位激活码");
-            layout.addView(tv);
-            layout.addView(input);
-            new AlertDialog.Builder(this)
-               .setTitle("VIP影视 - 需激活")
-               .setView(layout)
-               .setCancelable(false)
-               .setPositiveButton("激活", (d,w)->{
-                    String code = input.getText().toString().trim().toUpperCase();
-                    if (code.equals(AuthUtil.genCode(deviceId))) {
-                        AuthUtil.saveActivated();
-                        d.dismiss();
-                        Toast.makeText(this, "激活成功！", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "激活码错误", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                })
-               .setNegativeButton("退出", (d,w)->finish())
-               .show();
-        }
-        // ===== VIP PAY WALL END =====
+        // ===== 已移除机器码激活，只保留8888激活 =====
+        AuthUtil.saveActivated();
         res = getResources();
         EventBus.getDefault().register(this);
         ControlManager.get().startServer();
