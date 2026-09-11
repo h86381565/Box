@@ -41,7 +41,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:extractNativeLibs="true"
-        android:theme="@style/AppTheme.NoActionBar"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
