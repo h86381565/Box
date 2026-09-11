@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A1E">
+
+    <!-- 网格背景 -->
+    <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/bg_grid_dark"/>
+    <!-- 紫色光晕 -->
+    <View android:layout_width="380dp" android:layout_height="380dp" android:layout_gravity="center" android:background="@drawable/bg_purple_glow"/>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:padding="24dp">
+
+    <LinearLayout android:layout_width="420dp" android:layout_height="wrap_content" android:orientation="vertical"
+        android:background="@drawable/bg_card_dark" android:padding="32dp">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center">
+            <FrameLayout android:layout_width="56dp" android:layout_height="56dp">
+                <TextView android:layout_width="56dp" android:layout_height="56dp" android:background="@drawable/bg_icon_purple" android:text="◇" android:textColor="#FFFFFF" android:gravity="center" android:textSize="24sp"/>
+                <View android:layout_width="10dp" android:layout_height="10dp" android:layout_gravity="top|end" android:background="@drawable/dot_green"/>
+            </FrameLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="VIP 尊享激活" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="VIP EXCLUSIVE ACTIVATION · 4K解码引擎已就绪" android:textColor="#7A7A9E" android:textSize="10sp"/>
+        </LinearLayout>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="设备识别码 DEVICE ID" android:textColor="#6B6B8A" android:textSize="10sp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="8dp" android:background="@drawable/bg_input_dark" android:gravity="center_vertical" android:padding="14dp" android:orientation="horizontal">
+            <TextView android:id="@+id/tv_device_id" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="ABCD-1234-EFGH-5678" android:textColor="#FFFFFF" android:fontFamily="monospace" android:textSize="13sp" android:letterSpacing="0.08"/>
+            <TextView android:id="@+id/btn_copy_id" android:layout_width="32dp" android:layout_height="32dp" android:background="@drawable/bg_copy_btn" android:text="⎙" android:gravity="center" android:textColor="#9A9AB8"/>
+        </LinearLayout>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="激活码 ACTIVATION CODE" android:textColor="#6B6B8A" android:textSize="10sp"/>
+        <EditText android:id="@+id/et_code" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="8dp" android:background="@drawable/bg_input_dark" android:hint="请输入16位激活码" android:textColor="#FFFFFF" android:textColorHint="#5A5A7A" android:padding="14dp" android:maxLength="16" android:textAllCaps="true"/>
+
+        <TextView android:id="@+id/tv_counter" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="0/16 已输入" android:textColor="#5A5A7A" android:textSize="11sp" android:layout_marginTop="8dp" android:gravity="end"/>
+
+        <TextView android:id="@+id/btn_activate" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="20dp" android:background="@drawable/bg_btn_purple" android:text="⚡ 立即激活" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold" android:textSize="14sp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="18dp">
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_feature_card" android:gravity="center" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="▶" android:textColor="#9A9AB8" android:textSize="14sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4K解码" android:textColor="#9A9AB8" android:textSize="11sp"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_feature_card" android:gravity="center" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☰" android:textColor="#9A9AB8" android:textSize="14sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="多源聚合" android:textColor="#9A9AB8" android:textSize="11sp"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:background="@drawable/bg_feature_card" android:gravity="center" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="♔" android:textColor="#9A9AB8" android:textSize="14sp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VIP专享" android:textColor="#9A9AB8" android:textSize="11sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="18dp" android:background="#2A2A4E"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="—— 客服获取激活码 ——" android:gravity="center" android:textColor="#5A5A7A" android:textSize="11sp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="10dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="微信: VIPPlayer888" android:background="@drawable/bg_pill_dark" android:textColor="#9A9AB8" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:textSize="11sp" android:layout_marginEnd="10dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="QQ: 88888888" android:background="@drawable/bg_pill_dark" android:textColor="#9A9AB8" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:textSize="11sp"/>
+        </LinearLayout>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="自研解码引擎 · 支持TVBox多视频源 · 永久免费更新" android:gravity="center" android:textColor="#4A4A6A" android:textSize="10sp"/>
+    </LinearLayout>
+    </LinearLayout>
+    </ScrollView>
+</FrameLayout>
