@@ -6,29 +6,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 11
-        uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
 
-      - name: 定制品牌和接口
+      - name: 定制
         run: |
-          STR_FILE="app/src/main/res/values/strings.xml"
-          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">VIP影视<\/string>/g' "$STR_FILE" || true
-          APP_FILE="app/src/main/java/com/github/tvbox/osc/base/App.java"
+          sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">VIP影视<\/string>/g' app/src/main/res/values/strings.xml
           API="https://raw.githubusercontent.com/h86381565/test-TV/main/fenxiang1.json"
-          sed -i "s|.*HawkConfig.API_URL.*| putDefault(HawkConfig.API_URL, \"$API\");|g" "$APP_FILE" || true
+          sed -i "s|.*HawkConfig.API_URL.*|        putDefault(HawkConfig.API_URL, \"$API\");|g" app/src/main/java/com/github/tvbox/osc/base/App.java
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          cat local.properties
 
       - name: 打包
         run: |
           chmod +x gradlew
-         ./gradlew clean assembleDebug --stacktrace --no-daemon
+          ./gradlew assembleDebug --stacktrace
 
       - name: 上传APK
         uses: actions/upload-artifact@v4
