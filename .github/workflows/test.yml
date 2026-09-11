@@ -1,4 +1,4 @@
-name: Build VIP 永不闪退
+name: Build VIP影视最终卖货版
 on: [push]
 jobs:
   build:
@@ -6,29 +6,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
 
-      - name: 定制
+      - name: 一键定制为VIP影视
         run: |
+          echo "=== 开始定制VIP影视 ==="
+          # 1. 改APP名字
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">VIP影视<\/string>/g' app/src/main/res/values/strings.xml
+          # 2. 写死你的接口
           API="https://raw.githubusercontent.com/h86381565/test-TV/main/fenxiang1.json"
           sed -i "s|.*HawkConfig.API_URL.*|        putDefault(HawkConfig.API_URL, \"$API\");|g" app/src/main/java/com/github/tvbox/osc/base/App.java
           echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "定制完成"
+          grep "app_name" app/src/main/res/values/strings.xml
+          grep "API_URL" app/src/main/java/com/github/tvbox/osc/base/App.java
 
-      - name: 打包
+      - name: 打包通用版
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleArm64GenericDebug --stacktrace
 
-      - name: 上传APK
+      - name: 上传最终APK
         uses: actions/upload-artifact@v4
         with:
-          name: VIP影视-永不闪退版
-          path: app/build/outputs/apk/debug/*.apk
+          name: VIP影视-最终卖货版-arm64通用
+          path: app/build/outputs/apk/arm64Generic/debug/*.apk
