@@ -45,17 +45,25 @@
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
+        <!-- ★ 新增：全屏VIP激活页，设为启动页 -->
+        <activity
+            android:name=".ui.activity.VipActivationActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:screenOrientation="sensorLandscape"
+            android:exported="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".ui.activity.HomeActivity"
             android:screenOrientation="sensorLandscape"
             android:exported="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".ui.activity.PlayActivity"
