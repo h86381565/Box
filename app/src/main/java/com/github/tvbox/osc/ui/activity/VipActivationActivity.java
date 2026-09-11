@@ -26,14 +26,12 @@ public class VipActivationActivity extends Activity {
         root.setGravity(Gravity.CENTER);
         root.setBackgroundColor(Color.parseColor("#7C4DFF"));
         root.setPadding(50,50,50,50);
-
         TextView tv = new TextView(this);
         tv.setText("VIP影视激活");
         tv.setTextSize(32);
         tv.setTextColor(Color.WHITE);
         tv.setGravity(Gravity.CENTER);
         root.addView(tv);
-
         EditText et = new EditText(this);
         et.setHint("请输入 8888");
         et.setBackgroundColor(Color.WHITE);
@@ -42,18 +40,15 @@ public class VipActivationActivity extends Activity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 130);
         lp.topMargin = 40;
         root.addView(et, lp);
-
         Button btn = new Button(this);
         btn.setText("立即激活");
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(600, 130);
         lp2.topMargin = 20;
         root.addView(btn, lp2);
-
         TextView err = new TextView(this);
         err.setTextColor(Color.YELLOW);
         err.setGravity(Gravity.CENTER);
         root.addView(err);
-
         btn.setOnClickListener(v -> {
             if ("8888".equals(et.getText().toString().trim())) {
                 sp.edit().putBoolean("isVip", true).apply();
