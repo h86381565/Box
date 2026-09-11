@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#7C4DFF"
-    android:padding="40dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="VIP影视激活"
-        android:textSize="32sp"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold" />
-
-    <EditText
-        android:id="@+id/et_code"
-        android:layout_width="400dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="40dp"
-        android:background="#FFFFFF"
-        android:hint="请输入激活码 8888"
-        android:gravity="center"
-        android:textColor="#000000" />
-
-    <Button
-        android:id="@+id/btn_active"
-        android:layout_width="400dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:text="立即激活"
-        android:textSize="18sp" />
-
-</LinearLayout>
+    android:background="#0A0A1A">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+        <LinearLayout android:orientation="vertical" android:gravity="center" android:padding="24dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <LinearLayout android:orientation="vertical" android:layout_width="380dp" android:layout_height="wrap_content" android:background="#151528" android:padding="32dp">
+                <LinearLayout android:orientation="vertical" android:gravity="center" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="◆" android:textColor="#FFF" android:textSize="20sp" android:gravity="center" android:background="#7C3AED"/>
+                    <TextView android:text="VIP 尊享激活" android:textColor="#FFF" android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="16dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:text="VIP EXCLUSIVE ACTIVATION · 4K解码引擎已就绪" android:textColor="#6B7280" android:textSize="8sp" android:layout_marginTop="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+                <TextView android:text="设备识别码 DEVICE ID" android:textColor="#6B7280" android:textSize="9sp" android:layout_marginTop="28dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <LinearLayout android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="10dp" android:padding="14dp" android:background="#0F0F1F" android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <TextView android:id="@+id/tvDeviceId" android:text="ABCD-1234-EFGH-5678" android:textColor="#FFF" android:textSize="12sp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content"/>
+                    <TextView android:id="@+id/btnCopyDevice" android:text="⎙" android:background="#2A2A40" android:padding="10dp" android:textColor="#FFF" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center"/>
+                </LinearLayout>
+                <TextView android:text="激活码 ACTIVATION CODE" android:textColor="#6B7280" android:textSize="9sp" android:layout_marginTop="24dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <EditText android:id="@+id/etActivationCode" android:hint="请输入16位激活码" android:textColorHint="#4B5563" android:textColor="#FFF" android:textSize="13sp" android:background="#0F0F1F" android:padding="16dp" android:layout_marginTop="10dp" android:layout_width="match_parent" android:layout_height="52dp"/>
+                <TextView android:id="@+id/btnActive" android:text="⚡ 立即激活" android:textColor="#FFF" android:textSize="13sp" android:textStyle="bold" android:gravity="center" android:background="#7C3AED" android:layout_marginTop="28dp" android:padding="16dp" android:layout_width="match_parent" android:layout_height="52dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
