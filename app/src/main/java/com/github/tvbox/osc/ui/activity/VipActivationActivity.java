@@ -11,68 +11,67 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.github.tvbox.osc.R; 
 
 public class VipActivationActivity extends AppCompatActivity {
     private final String RIGHT_CODE = "8888";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sp = getSharedPreferences("vip", MODE_PRIVATE);
-        if (sp.getBoolean("isVip", false)) {
-            goHome();
-            return;
-        }
-        
-        // 纯代码创建界面，不用R.layout，不会闪退
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER);
-        root.setBackgroundColor(Color.parseColor("#7C4DFF"));
-        
-        TextView tv = new TextView(this);
-        tv.setText("VIP激活");
-        tv.setTextSize(30);
-        tv.setTextColor(Color.WHITE);
-        tv.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(-2, -2);
-        root.addView(tv, lp1);
-        
-        EditText et = new EditText(this);
-        et.setHint("请输入 8888");
-        et.setBackgroundColor(Color.WHITE);
-        et.setPadding(20,20,20,20);
-        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(600, 120);
-        lp2.topMargin = 50;
-        root.addView(et, lp2);
-        
-        Button btn = new Button(this);
-        btn.setText("立即激活");
-        btn.setOnClickListener(v -> {
-            if (RIGHT_CODE.equals(et.getText().toString().trim())) {
-                sp.edit().putBoolean("isVip", true).apply();
-                Toast.makeText(this, "激活成功", Toast.LENGTH_SHORT).show();
+        try {
+            SharedPreferences sp = getSharedPreferences("vip", MODE_PRIVATE);
+            if (sp.getBoolean("isVip", false)) {
                 goHome();
-            } else {
-                Toast.makeText(this, "激活码错误: 8888", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
-        root.addView(btn, lp2);
-        
-        setContentView(root);
+            LinearLayout root = new LinearLayout(this);
+            root.setOrientation(LinearLayout.VERTICAL);
+            root.setGravity(Gravity.CENTER);
+            root.setBackgroundColor(Color.parseColor("#7C4DFF"));
+            root.setPadding(50,50,50,50);
+
+            TextView tv = new TextView(this);
+            tv.setText("VIP影视 - 激活");
+            tv.setTextSize(28);
+            tv.setTextColor(Color.WHITE);
+            tv.setGravity(Gravity.CENTER);
+            root.addView(tv);
+
+            EditText et = new EditText(this);
+            et.setHint("请输入激活码 8888");
+            et.setBackgroundColor(Color.WHITE);
+            et.setTextColor(Color.BLACK);
+            et.setPadding(30,30,30,30);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 130);
+            lp.topMargin = 60;
+            root.addView(et, lp);
+
+            Button btn = new Button(this);
+            btn.setText("立即激活");
+            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(600, 130);
+            lp2.topMargin = 30;
+            root.addView(btn, lp2);
+
+            btn.setOnClickListener(v -> {
+                if (RIGHT_CODE.equals(et.getText().toString().trim())) {
+                    sp.edit().putBoolean("isVip", true).apply();
+                    Toast.makeText(this, "激活成功", Toast.LENGTH_SHORT).show();
+                    goHome();
+                } else {
+                    Toast.makeText(this, "错误，请输入8888", Toast.LENGTH_SHORT).show();
+                }
+            });
+            setContentView(root);
+        } catch (Exception e) {
+            Toast.makeText(this, "崩溃: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
     }
-    
     private void goHome() {
         try {
-            // TVBox官方首页就叫 MainActivity
-            Intent intent = new Intent(this, Class.forName("com.github.tvbox.osc.ui.activity.MainActivity"));
-            startActivity(intent);
+            startActivity(new Intent(this, HomeActivity.class));
         } catch (Exception e) {
-            try {
-                Intent intent = new Intent(this, Class.forName("com.github.tvbox.osc.ui.activity.HomeActivity"));
-                startActivity(intent);
-            } catch (Exception e2) {
-                Toast.makeText(this, "找不到首页: " + e2.getMessage(), Toast.LENGTH_LONG).show();
-            }
+            Toast.makeText(this, "找不到HomeActivity: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
         finish();
     }
