@@ -1,3 +1,4 @@
+
 name: Build VIP影视最终卖货版
 on: [push]
 jobs:
@@ -22,15 +23,15 @@ jobs:
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "=== 定制完成 ==="
           cat app/src/main/res/values/strings.xml | grep app_name || true
-          cat app/src/main/java/com/github/tvbox/osc/base/App.java | grep API_URL || echo "API已写入，grep跳过"
 
       - name: 打包通用版
         run: |
           chmod +x gradlew
-          ./gradlew assembleArm64GenericDebug --stacktrace
+          ./gradlew assembleArm64GenericNormalDebug --stacktrace
 
       - name: 上传最终APK
         uses: actions/upload-artifact@v4
         with:
           name: VIP影视-最终卖货版-arm64通用
-          path: app/build/outputs/apk/arm64Generic/debug/*.apk
+          path: app/build/outputs/apk/**/*.apk
+
