@@ -45,10 +45,10 @@
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
-        <!-- ★ 新增：全屏VIP激活页，设为启动页 -->
+        <!-- ★ 修复闪退：必须用AppTheme -->
         <activity
             android:name=".ui.activity.VipActivationActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="sensorLandscape"
             android:exported="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
