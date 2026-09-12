@@ -28,7 +28,6 @@ public class DefaultConfig {
 
     public static List<MovieSort.SortData> adjustSort(String sourceKey, List<MovieSort.SortData> list, boolean withMy) {
         List<MovieSort.SortData> data = new ArrayList<>();
-        // 暴力写死8个，左边导航就是点播导航，中间那排就没了
         String[][] defs = {
                 {"my0", "首页推荐"},
                 {"movie", "电影"},
@@ -39,26 +38,12 @@ public class DefaultConfig {
                 {"live", "电视直播"},
                 {"comic", "少儿"}
         };
-        int start = withMy? 0 : 1;
-        for (int i = start; i < defs.length; i++) {
+        for (String[] d : defs) {
             MovieSort.SortData sd = new MovieSort.SortData();
-            sd.id = defs[i][0];
-            sd.name = defs[i][1];
+            sd.id = d[0];
+            sd.name = d[1];
             sd.filters = new ArrayList<>();
             data.add(sd);
-        }
-        // 如果你传withMy=false的地方，上层会自己加my0，这里兼容一下
-        if (!withMy) {
-            // withMy=false时，调用方可能自己加首页，这里不管
-        } else {
-            // 确保my0一定在第一个
-            if (data.isEmpty() ||!"my0".equals(data.get(0).id)) {
-                MovieSort.SortData my = new MovieSort.SortData();
-                my.id = "my0";
-                my.name = "首页推荐";
-                my.filters = new ArrayList<>();
-                data.add(0, my);
-            }
         }
         return data;
     }
