@@ -308,13 +308,11 @@ public class HomeActivity extends BaseActivity {
     private void showPlayerTypeSwitch() {
         try {
             List<String> players = new ArrayList<>();
+            players.add("Exo硬解 - 4K最快 ★★ (推荐)");
             players.add("IJK硬解 - 平衡 ★");
             players.add("IJK软解 - 兼容最强");
-            players.add("Exo硬解 - 4K最快 ★★");
             players.add("Exo软解 - 高码率");
             players.add("系统播放器");
-            players.add("VLC外置 - 解码最全");
-            players.add("MX外置 - 速度最快");
             int cur = Hawk.get(HawkConfig.PLAY_TYPE, 1);
             boolean isSoft = Hawk.get("PLAY_USE_SOFT", false);
             int curIdx = 0;
@@ -325,13 +323,11 @@ public class HomeActivity extends BaseActivity {
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
             dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
                 @Override public void click(String value, int pos) {
-                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
                     else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
                     else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 5) { Hawk.put("EXT_PLAY_TYPE", "VLC"); }
-                    else if (pos == 6) { Hawk.put("EXT_PLAY_TYPE", "MX"); }
                     Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_LONG).show();
                     dialog.dismiss();
                 }
