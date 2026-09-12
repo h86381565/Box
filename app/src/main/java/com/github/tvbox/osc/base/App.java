@@ -39,11 +39,6 @@ import io.github.inflationx.viewpump.ViewPump;
 import me.jessyan.autosize.AutoSizeConfig;
 import me.jessyan.autosize.unit.Subunits;
 
-/**
- * @author pj567
- * @date :2020/12/17
- * @description:
- */
 public class App extends MultiDexApplication {
     private static App instance;
     private static P2PClass p;
@@ -63,17 +58,11 @@ public class App extends MultiDexApplication {
         super.onCreate();
         SubtitleHelper.initSubtitleColor(this);
         initParams();
-        // takagen99 : Initialize Locale
         initLocale();
-        // OKGo
         OkGoHelper.init();
-        // 闭关检查模式
         XXPermissions.setCheckMode(false);
-        // Get EPG Info
         EpgUtil.init();
-        // 初始化Web服务器
         ControlManager.init(this);
-        //初始化数据库
         AppDataManager.init();
         LoadSir.beginBuilder()
                 .addCallback(new EmptyCallback())
@@ -83,7 +72,6 @@ public class App extends MultiDexApplication {
                 .setSupportDP(false)
                 .setSupportSP(false)
                 .setSupportSubunits(Subunits.MM);
-        // 修复 Android 14+：冷启动时 ScreenUtils 可能获取到竖屏宽度，导致 xdpi 计算错误、UI 变小
         int screenWidth = AutoSizeConfig.getInstance().getScreenWidth();
         int screenHeight = AutoSizeConfig.getInstance().getScreenHeight();
         if (screenWidth < screenHeight) {
@@ -91,19 +79,8 @@ public class App extends MultiDexApplication {
             AutoSizeConfig.getInstance().setScreenHeight(screenWidth);
         }
         PlayerHelper.init();
-
-        // Delete Cache
-        /*File dir = getCacheDir();
-        FileUtils.recursiveDelete(dir);
-        dir = getExternalCacheDir();
-        FileUtils.recursiveDelete(dir);*/
-
         FileUtils.cleanPlayerCache();
-
-        // Add JS support
         QuickJSLoader.init();
-
-        // add font support, my tv embed font not include emoji
         String extStorageDir = Environment.getExternalStorageDirectory().getAbsolutePath();
         File fontFile = new File(extStorageDir + "/tvbox.ttf");
         if (fontFile.exists()) {
@@ -129,31 +106,31 @@ public class App extends MultiDexApplication {
         }
     }
 
-
     private void initParams() {
-        // Hawk
         Hawk.init(this).build();
         Hawk.put(HawkConfig.DEBUG_OPEN, false);
 
-        // 首页选项
-        putDefault(HawkConfig.HOME_SHOW_SOURCE, true);       //数据源显示: true=开启, false=关闭
-        putDefault(HawkConfig.HOME_SEARCH_POSITION, false);  //按钮位置-搜索: true=上方, false=下方
-        putDefault(HawkConfig.HOME_MENU_POSITION, true);     //按钮位置-设置: true=上方, false=下方
-        putDefault(HawkConfig.HOME_REC, 1);                  //推荐: 0=豆瓣热播, 1=站点推荐, 2=观看历史
-        putDefault(HawkConfig.HOME_NUM, 4);                  //历史条数: 0=20条, 1=40条, 2=60条, 3=80条, 4=100条
-        // 播放器选项
-        putDefault(HawkConfig.SHOW_PREVIEW, true);           //窗口预览: true=开启, false=关闭
-        putDefault(HawkConfig.PLAY_SCALE, 0);                //画面缩放: 0=默认, 1=16:9, 2=4:3, 3=填充, 4=原始, 5=裁剪
-        putDefault(HawkConfig.BACKGROUND_PLAY_TYPE, 0);      //后台：0=关闭, 1=开启, 2=画中画
-        putDefault(HawkConfig.PLAY_TYPE, 1);                 //播放器: 0=系统, 1=IJK, 2=Exo, 3=MX, 4=Reex, 5=Kodi
-        putDefault(HawkConfig.IJK_CODEC, "硬解码");           //IJK解码: 软解码, 硬解码
-        // 系统选项
-        putDefault(HawkConfig.HOME_LOCALE, 0);               //语言: 0=中文, 1=英文
-        putDefault(HawkConfig.THEME_SELECT, 0);              //主题: 0=奈飞, 1=哆啦, 2=百事, 3=鸣人, 4=小黄, 5=八神, 6=樱花
-        putDefault(HawkConfig.SEARCH_VIEW, 1);               //搜索展示: 0=文字列表, 1=缩略图
-        putDefault(HawkConfig.PARSE_WEBVIEW, true);          //嗅探Webview: true=系统自带, false=XWalkView
-        putDefault(HawkConfig.DOH_URL, 0);                   //安全DNS: 0=关闭, 1=腾讯, 2=阿里, 3=360, 4=Google, 5=AdGuard, 6=Quad9
+        // ===== 核心修复：内置你的加速接口，解决 源地址为空 =====
+        putDefault(HawkConfig.API_URL, "https://ghfast.top/https://raw.githubusercontent.com/h86381565/test-TV/main/fantaiying.json");
 
+        // 首页选项
+        putDefault(HawkConfig.HOME_SHOW_SOURCE, true);
+        putDefault(HawkConfig.HOME_SEARCH_POSITION, false);
+        putDefault(HawkConfig.HOME_MENU_POSITION, true);
+        putDefault(HawkConfig.HOME_REC, 1);
+        putDefault(HawkConfig.HOME_NUM, 4);
+        // 播放器选项
+        putDefault(HawkConfig.SHOW_PREVIEW, true);
+        putDefault(HawkConfig.PLAY_SCALE, 0);
+        putDefault(HawkConfig.BACKGROUND_PLAY_TYPE, 0);
+        putDefault(HawkConfig.PLAY_TYPE, 1);
+        putDefault(HawkConfig.IJK_CODEC, "硬解码");
+        // 系统选项
+        putDefault(HawkConfig.HOME_LOCALE, 0);
+        putDefault(HawkConfig.THEME_SELECT, 0);
+        putDefault(HawkConfig.SEARCH_VIEW, 1);
+        putDefault(HawkConfig.PARSE_WEBVIEW, true);
+        putDefault(HawkConfig.DOH_URL, 0);
     }
 
     private void initLocale() {
@@ -195,20 +172,9 @@ public class App extends MultiDexApplication {
                 .port(12345)
                 .timeout(60, TimeUnit.SECONDS)
                 .listener(new Server.ServerListener() {
-                    @Override
-                    public void onStarted() {
-
-                    }
-
-                    @Override
-                    public void onStopped() {
-
-                    }
-
-                    @Override
-                    public void onException(Exception e) {
-
-                    }
+                    @Override public void onStarted() {}
+                    @Override public void onStopped() {}
+                    @Override public void onException(Exception e) {}
                 }).build();
         server.startup();
     }
