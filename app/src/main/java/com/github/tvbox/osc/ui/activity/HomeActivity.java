@@ -207,17 +207,19 @@ public class HomeActivity extends BaseActivity {
                             jumpActivity(LivePlayActivity.class);
                             return;
                         }
+                        // 修复：点左边不弹出数据源，点首页推荐也不弹
                         if (currentSelected!= position) {
                             sortFocused = position;
                             mHandler.removeCallbacks(mDataRunnable);
                             mHandler.post(mDataRunnable);
                         } else {
-                            BaseLazyFragment baseLazyFragment = fragments.get(currentSelected);
+                            // 已经在当前分类，再点一次：如果是GridFragment就打开筛选
+                            BaseLazyFragment baseLazyFragment = null;
+                            try { baseLazyFragment = fragments.get(currentSelected); } catch (Exception ignore) {}
                             if ((baseLazyFragment instanceof GridFragment) && sortData.filters!= null &&!sortData.filters.isEmpty()) {
                                 ((GridFragment) baseLazyFragment).showFilter();
-                            } else if (baseLazyFragment instanceof UserFragment) {
-                                showSiteSwitch();
                             }
+                            // 以前这里如果是UserFragment会弹showSiteSwitch，导致点首页推荐弹出数据源，已移除
                         }
                     } catch (Exception ignore) {}
                 }
@@ -529,9 +531,17 @@ private void showPlayerSetting() {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    if ("live".equals(data.id)) fragments.add(UserFragment.newInstance(null));
-                    else if (data.id.equals("my0")) fragments.add(UserFragment.newInstance(null));
-                    else fragments.add(GridFragment.newInstance(data));
+                    if ("live".equals(data.id)) {
+                        fragments.add(UserFragment.newInstance(null));
+                    } else {
+                        // 修复：首页推荐也用GridFragment，不要用UserFragment，否则点首页推荐会弹数据源
+                        // 只有id=my0且名字包含"我的"才用UserFragment作为历史页面
+                        if ("my0".equals(data.id) && data.name!=null && data.name.contains("我的")) {
+                            fragments.add(UserFragment.newInstance(null));
+                        } else {
+                            fragments.add(GridFragment.newInstance(data));
+                        }
+                    }
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
