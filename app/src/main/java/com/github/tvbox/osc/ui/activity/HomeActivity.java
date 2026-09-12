@@ -1,419 +1,396 @@
-Run chmod +x gradlew
-Downloading https://mirrors.cloud.tencent.com/gradle/gradle-7.5-bin.zip
-...................................................................................................................
-Unzipping /home/runner/.gradle/wrapper/dists/gradle-7.5-bin/1bmvna2xxjhfv7365tgdvoqbr/gradle-7.5-bin.zip to /home/runner/.gradle/wrapper/dists/gradle-7.5-bin/1bmvna2xxjhfv7365tgdvoqbr
-Set executable permissions for: /home/runner/.gradle/wrapper/dists/gradle-7.5-bin/1bmvna2xxjhfv7365tgdvoqbr/gradle-7.5/bin/gradle
+package com.github.tvbox.osc.ui.activity;
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.IntEvaluator;
+import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.provider.Settings;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.BounceInterpolator;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+import com.github.tvbox.osc.R;
+import com.github.tvbox.osc.api.ApiConfig;
+import com.github.tvbox.osc.base.App;
+import com.github.tvbox.osc.base.BaseActivity;
+import com.github.tvbox.osc.base.BaseLazyFragment;
+import com.github.tvbox.osc.bean.AbsSortXml;
+import com.github.tvbox.osc.bean.MovieSort;
+import com.github.tvbox.osc.bean.SourceBean;
+import com.github.tvbox.osc.event.RefreshEvent;
+import com.github.tvbox.osc.server.ControlManager;
+import com.github.tvbox.osc.ui.adapter.HomePageAdapter;
+import com.github.tvbox.osc.ui.adapter.SelectDialogAdapter;
+import com.github.tvbox.osc.ui.adapter.SortAdapter;
+import com.github.tvbox.osc.ui.dialog.SelectDialog;
+import com.github.tvbox.osc.ui.dialog.TipDialog;
+import com.github.tvbox.osc.ui.fragment.GridFragment;
+import com.github.tvbox.osc.ui.fragment.UserFragment;
+import com.github.tvbox.osc.ui.tv.widget.DefaultTransformer;
+import com.github.tvbox.osc.ui.tv.widget.FixedSpeedScroller;
+import com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager;
+import com.github.tvbox.osc.ui.tv.widget.ViewObj;
+import com.github.tvbox.osc.util.AppManager;
+import com.github.tvbox.osc.util.AuthUtil;
+import com.github.tvbox.osc.util.DefaultConfig;
+import com.github.tvbox.osc.util.FastClickCheckUtil;
+import com.github.tvbox.osc.util.FileUtils;
+import com.github.tvbox.osc.util.HawkConfig;
+import com.github.tvbox.osc.util.LOG;
+import com.github.tvbox.osc.util.MD5;
+import com.github.tvbox.osc.viewmodel.SourceViewModel;
+import com.orhanobut.hawk.Hawk;
+import com.owen.tvrecyclerview.widget.TvRecyclerView;
+import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
+import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.jetbrains.annotations.NotNull;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import me.jessyan.autosize.utils.AutoSizeUtils;
 
-Welcome to Gradle 7.5!
-
-Here are the highlights of this release:
- - Support for Java 18
- - Support for building with Groovy 4
- - Much more responsive continuous builds
- - Improved diagnostics for dependency resolution
-
-For more details see https://docs.gradle.org/7.5/release-notes.html
-
-Starting a Gradle Daemon (subsequent builds will be faster)
-WARNING:We recommend using a newer Android Gradle plugin to use compileSdk = 34
-
-This Android Gradle plugin (7.4.2) was tested up to compileSdk = 33
-
-This warning can be suppressed by adding
-    android.suppressUnsupportedCompileSdk=34
-to this project's gradle.properties
-
-The build will continue, but you are strongly encouraged to update your project to
-use a newer Android Gradle Plugin that has been tested with compileSdk = 34
-This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
-Checking the license for package Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/licenses
-License for package Android SDK Build-Tools 30.0.3 accepted.
-Preparing "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)".
-"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" ready.
-Installing Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/build-tools/30.0.3
-"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" complete.
-"Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" finished.
-> Task :app:preBuild UP-TO-DATE
-> Task :app:preArm64GenericNormalDebugBuild UP-TO-DATE
-> Task :app:mergeArm64GenericNormalDebugNativeDebugMetadata NO-SOURCE
-> Task :quickjs:preBuild UP-TO-DATE
-> Task :quickjs:preDebugBuild UP-TO-DATE
-> Task :quickjs:compileDebugAidl NO-SOURCE
-> Task :app:compileArm64GenericNormalDebugAidl NO-SOURCE
-> Task :app:checkKotlinGradlePluginConfigurationErrors
-> Task :quickjs:packageDebugRenderscript NO-SOURCE
-> Task :app:compileArm64GenericNormalDebugRenderscript NO-SOURCE
-
-> Task :app:dataBindingMergeDependencyArtifactsArm64GenericNormalDebug
-WARNING: [Processor] Library '/home/runner/.gradle/caches/modules-2/files-2.1/me.jessyan/autosize/1.2.1/a44df9822e0cb91242358f070ef813714fd81c05/autosize-1.2.1.aar' contains references to both AndroidX and old support library. This seems like the library is partially migrated. Jetifier will try to rewrite the library anyway.
- Example of androidX reference: 'androidx/fragment/app/FragmentManager$FragmentLifecycleCallbacks'
- Example of support library reference: 'android/support/v4/app/FragmentManager$FragmentLifecycleCallbacks'
-WARNING: [Processor] Library '/home/runner/.gradle/caches/modules-2/files-2.1/androidx.media3/media3-ui/1.3.1/97d6136ea0c4942f67fccdfb77c5099fec02c4c0/media3-ui-1.3.1.aar' contains references to both AndroidX and old support library. This seems like the library is partially migrated. Jetifier will try to rewrite the library anyway.
- Example of androidX reference: 'androidx/media3/ui/PlayerNotificationManager'
- Example of support library reference: 'android/support/v4/media/session/MediaSessionCompat$Token'
-
-> Task :app:generateArm64GenericNormalDebugResValues
-> Task :app:generateArm64GenericNormalDebugResources
-> Task :quickjs:compileDebugRenderscript NO-SOURCE
-> Task :quickjs:generateDebugResValues
-> Task :quickjs:generateDebugResources
-> Task :quickjs:packageDebugResources
-> Task :app:dataBindingTriggerArm64GenericNormalDebug
-> Task :app:generateArm64GenericNormalDebugAppInfo
-> Task :app:generateArm64GenericNormalDebugBuildConfig
-> Task :quickjs:writeDebugAarMetadata
-> Task :app:mapArm64GenericNormalDebugSourceSetPaths
-> Task :app:createArm64GenericNormalDebugCompatibleScreenManifests
-> Task :app:extractDeepLinksArm64GenericNormalDebug
-> Task :app:checkArm64GenericNormalDebugAarMetadata
-> Task :quickjs:extractDeepLinksDebug
-
-> Task :quickjs:processDebugManifest
-package="com.whl.quickjs.android" found in source AndroidManifest.xml: /home/runner/work/Box/Box/quickjs/src/main/AndroidManifest.xml.
-Setting the namespace via a source AndroidManifest.xml's package attribute is deprecated.
-Please instead set the namespace (or testNamespace) in the module's build.gradle file, as described here: https://developer.android.com/studio/build/configure-app-module#set-namespace
-This migration can be done automatically using the AGP Upgrade Assistant, please refer to https://developer.android.com/studio/build/agp-upgrade-assistant for more information.
-
-> Task :app:mergeArm64GenericNormalDebugResources
-> Task :quickjs:compileDebugLibraryResources
-> Task :app:dataBindingGenBaseClassesArm64GenericNormalDebug
-
-> Task :app:processArm64GenericNormalDebugMainManifest
-package="com.github.tvbox.osc" found in source AndroidManifest.xml: /home/runner/work/Box/Box/app/src/main/AndroidManifest.xml.
-Setting the namespace via a source AndroidManifest.xml's package attribute is deprecated.
-Please instead set the namespace (or testNamespace) in the module's build.gradle file, as described here: https://developer.android.com/studio/build/configure-app-module#set-namespace
-This migration can be done automatically using the AGP Upgrade Assistant, please refer to https://developer.android.com/studio/build/agp-upgrade-assistant for more information.
-
-> Task :app:processArm64GenericNormalDebugManifest
-> Task :quickjs:generateDebugBuildConfig
-> Task :app:processArm64GenericNormalDebugManifestForPackage
-> Task :quickjs:javaPreCompileDebug
-> Task :quickjs:parseDebugLocalResources
-> Task :app:javaPreCompileArm64GenericNormalDebug
-> Task :app:mergeArm64GenericNormalDebugShaders
-> Task :app:compileArm64GenericNormalDebugShaders NO-SOURCE
-> Task :app:generateArm64GenericNormalDebugAssets UP-TO-DATE
-> Task :quickjs:mergeDebugShaders
-> Task :quickjs:compileDebugShaders NO-SOURCE
-> Task :quickjs:generateDebugAssets UP-TO-DATE
-> Task :quickjs:packageDebugAssets
-> Task :quickjs:generateDebugRFile
-
-> Task :app:mergeArm64GenericNormalDebugAssets
-Execution optimizations have been disabled for task ':app:mergeArm64GenericNormalDebugAssets' to ensure correctness due to the following reasons:
-  - Additional action of task ':app:mergeArm64GenericNormalDebugAssets' was implemented by the Java lambda 'com.yanzhenjie.andserver.plugin.AndServerPlugin$$Lambda$939/0x00007fa36cb80820'. Reason: Using Java lambdas is not supported as task inputs. Please refer to https://docs.gradle.org/7.5/userguide/validation_problems.html#implementation_unknown for more details about this problem.
-
-> Task :app:processArm64GenericNormalDebugResources
-> Task :quickjs:compileDebugJavaWithJavac
-> Task :app:processArm64GenericNormalDebugJavaRes NO-SOURCE
-> Task :quickjs:processDebugJavaRes NO-SOURCE
-> Task :quickjs:bundleLibResDebug NO-SOURCE
-> Task :quickjs:bundleLibCompileToJarDebug
-> Task :app:compressArm64GenericNormalDebugAssets
-> Task :app:checkArm64GenericNormalDebugDuplicateClasses
-> Task :quickjs:bundleLibRuntimeToJarDebug
-> Task :app:mergeArm64GenericNormalDebugJniLibFolders
-> Task :quickjs:mergeDebugJniLibFolders
-> Task :quickjs:mergeDebugNativeLibs
-> Task :quickjs:copyDebugJniLibsProjectOnly
-> Task :app:mergeLibDexArm64GenericNormalDebug
-> Task :app:mergeArm64GenericNormalDebugNativeLibs
-> Task :app:validateSigningArm64GenericNormalDebug
-> Task :app:writeArm64GenericNormalDebugAppMetadata
-> Task :app:writeArm64GenericNormalDebugSigningConfigVersions
-
-> Task :app:stripArm64GenericNormalDebugDebugSymbols
-Unable to strip the following libraries, packaging them as they are: libalivc_conan.so, libalivcffmpeg.so, libavcodec.so, libavutil.so, libconceal.so, libconscrypt_jni.so, libffmpegJNI.so, libijkffmpeg.so, libijkplayer.so, libijksdl.so, libmedia3ext.so, libp2p.so, libquickjs-android-wrapper.so, librtmp-jni.so, libsaasCorePlayer.so, libsaasDownloader.so, libswresample.so, libswscale.so, libxl_stat.so, libxl_thunder_sdk.so.
-
-> Task :app:kaptGenerateStubsArm64GenericNormalDebugKotlin
-
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:2: error: class, interface, or enum expected
-> Task :app:kaptArm64GenericNormalDebugKotlin
-protected void init() {
-          ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:6: error: class, interface, or enum expected
-    } catch (Exception ignore) {}
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:9: error: class, interface, or enum expected
-    } catch (Exception e) {
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:11: error: class, interface, or enum expected
+public class HomeActivity extends BaseActivity {
+    private static Resources res;
+    private View currentView;
+    private LinearLayout topLayout;
+    private LinearLayout contentLayout;
+    private TextView tvName;
+    private ImageView tvWifi;
+    private ImageView tvFind;
+    private ImageView tvStyle;
+    private ImageView tvDraw;
+    private ImageView tvMenu;
+    private TextView tvDate;
+    private TvRecyclerView mGridView;
+    private NoScrollViewPager mViewPager;
+    private SourceViewModel sourceViewModel;
+    private SortAdapter sortAdapter;
+    private HomePageAdapter pageAdapter;
+    private final List<BaseLazyFragment> fragments = new ArrayList<>();
+    private boolean isDownOrUp = false;
+    private boolean sortChange = false;
+    private int currentSelected = 0;
+    private int sortFocused = 0;
+    public View sortFocusView = null;
+    private final Handler mHandler = new Handler();
+    private long mExitTime = 0;
+    private final Runnable mRunnable = new Runnable() {
+        @SuppressLint({"DefaultLocale", "SetTextI18n"})
+        @Override
+        public void run() {
+            Date date = new Date();
+            @SuppressLint("SimpleDateFormat")
+            SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.hm_date1) + " | " + getString(R.string.hm_date2));
+            tvDate.setText(timeFormat.format(date));
+            mHandler.postDelayed(this, 1000);
+        }
+    };
+    @Override protected int getLayoutResID() { return R.layout.activity_home; }
+    boolean useCacheConfig = false;
+    boolean HomeShow = false;
+    @Override
+    protected void init() {
+        try { Hawk.init(this).build(); } catch (Exception ignore) {}
+        try { HomeShow = Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false); } catch (Exception e) { HomeShow = false; }
+        try { AuthUtil.saveActivated(this); } catch (Exception e) { try { AuthUtil.saveActivated(); } catch (Exception ignore) {} }
+        res = getResources();
+        EventBus.getDefault().register(this);
+        ControlManager.get().startServer();
+        App.startWebserver();
+        initView();
+        initViewModel();
+        useCacheConfig = false;
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            Bundle bundle = intent.getExtras();
+            useCacheConfig = bundle.getBoolean("useCache", false);
+        }
+        initData();
     }
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:14: error: class, interface, or enum expected
-    } catch (Exception e) {
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:15: error: class, interface, or enum expected
-        try { AuthUtil.saveActivated(); } catch (Exception ignore) {}
-                                        ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:18: error: class, interface, or enum expected
-    EventBus.getDefault().register(this);
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:19: error: class, interface, or enum expected
-    ControlManager.get().startServer();
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:20: error: class, interface, or enum expected
-    App.startWebserver();
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:21: error: class, interface, or enum expected
-    initView();
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:22: error: class, interface, or enum expected
-    initViewModel();
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:23: error: class, interface, or enum expected
-    useCacheConfig = false;
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:24: error: class, interface, or enum expected
-    Intent intent = getIntent();
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:25: error: class, interface, or enum expected
-    if (intent != null && intent.getExtras() != null) {
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:27: error: class, interface, or enum expected
-        useCacheConfig = bundle.getBoolean("useCache", false);
-        ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:28: error: class, interface, or enum expected
+    public static Resources getRes() { return res; }
+    private void initView() {
+        this.topLayout = findViewById(R.id.topLayout);
+        this.tvName = findViewById(R.id.tvName);
+        this.tvWifi = findViewById(R.id.tvWifi);
+        this.tvFind = findViewById(R.id.tvFind);
+        this.tvStyle = findViewById(R.id.tvStyle);
+        this.tvDraw = findViewById(R.id.tvDrawer);
+        this.tvMenu = findViewById(R.id.tvMenu);
+        this.tvDate = findViewById(R.id.tvDate);
+        this.contentLayout = findViewById(R.id.contentLayout);
+        this.mGridView = findViewById(R.id.mGridViewCategory);
+        this.mViewPager = findViewById(R.id.mViewPager);
+        this.sortAdapter = new SortAdapter();
+        this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
+        this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 10.0f));
+        this.mGridView.setAdapter(this.sortAdapter);
+        sortAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override public void onChanged() {
+                mGridView.post(() -> {
+                    View firstChild = Objects.requireNonNull(mGridView.getLayoutManager()).findViewByPosition(0);
+                    if (firstChild != null) { mGridView.setSelectedPosition(0); firstChild.requestFocus(); }
+                });
+            }
+        });
+        this.mGridView.setOnItemListener(new TvRecyclerView.OnItemListener() {
+            public void onItemPreSelected(TvRecyclerView tvRecyclerView, View view, int position) {
+                if (view != null && !HomeActivity.this.isDownOrUp) {
+                    view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250).start();
+                    TextView textView = view.findViewById(R.id.tvTitle);
+                    textView.getPaint().setFakeBoldText(false);
+                    textView.setTextColor(HomeActivity.this.getResources().getColor(R.color.color_FFFFFF_70));
+                    textView.invalidate();
+                    view.findViewById(R.id.tvFilter).setVisibility(View.GONE);
+                }
+            }
+            public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
+                if (view != null) {
+                    HomeActivity.this.currentView = view;
+                    HomeActivity.this.isDownOrUp = false;
+                    HomeActivity.this.sortChange = true;
+                    view.animate().scaleX(1.1f).scaleY(1.1f).setInterpolator(new BounceInterpolator()).setDuration(250).start();
+                    TextView textView = view.findViewById(R.id.tvTitle);
+                    textView.getPaint().setFakeBoldText(true);
+                    textView.setTextColor(HomeActivity.this.getResources().getColor(R.color.color_FFFFFF));
+                    textView.invalidate();
+                    if (position == -1) { position = 0; HomeActivity.this.mGridView.setSelection(0); }
+                    MovieSort.SortData sortData = sortAdapter.getItem(position);
+                    if (null != sortData && !sortData.filters.isEmpty()) { showFilterIcon(sortData.filterSelectCount()); }
+                    HomeActivity.this.sortFocusView = view;
+                    HomeActivity.this.sortFocused = position;
+                    mHandler.removeCallbacks(mDataRunnable);
+                    mHandler.postDelayed(mDataRunnable, 200);
+                }
+            }
+            @Override public void onItemClick(TvRecyclerView parent, View itemView, int position) {
+                if (itemView != null && currentSelected == position) {
+                    BaseLazyFragment baseLazyFragment = fragments.get(currentSelected);
+                    if ((baseLazyFragment instanceof GridFragment) && !sortAdapter.getItem(position).filters.isEmpty()) { ((GridFragment) baseLazyFragment).showFilter(); }
+                    else if (baseLazyFragment instanceof UserFragment) { showSiteSwitch(); }
+                }
+            }
+        });
+        this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
+            public boolean onInBorderKeyEvent(int direction, View view) {
+                if (direction == View.FOCUS_UP) {
+                    BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
+                    if ((baseLazyFragment instanceof GridFragment)) { ((GridFragment) baseLazyFragment).forceRefresh(); }
+                }
+                if (direction != View.FOCUS_DOWN) { return false; }
+                BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
+                if (!(baseLazyFragment instanceof GridFragment)) { return false; }
+                return !((GridFragment) baseLazyFragment).isLoad();
+            }
+        });
+        tvName.setOnClickListener(v -> {
+            FastClickCheckUtil.check(v);
+            File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir);
+            Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show();
+            if(dataInitOk && jarInitOk){
+                String cspCachePath = FileUtils.getFilePath()+"/csp/";
+                String jar=ApiConfig.get().getHomeSourceBean().getJar();
+                String jarUrl=!jar.isEmpty()?jar:ApiConfig.get().getSpider();
+                File cspCacheDir = new File(cspCachePath + MD5.string2MD5(jarUrl)+".jar");
+                if (!cspCacheDir.exists()){ reloadHome(); return; }
+                new Thread(() -> { try { FileUtils.deleteFile(cspCacheDir); ApiConfig.get().clearJarLoader(); reloadHome(); } catch (Exception e) { e.printStackTrace(); } }).start();
+            }
+        });
+        tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
+        tvWifi.setOnClickListener(view->{ try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
+        tvFind.setOnClickListener(view->{ jumpActivity(SearchActivity.class); });
+        tvStyle.setOnClickListener(view->{ try { Hawk.put(HawkConfig.HOME_REC_STYLE, !Hawk.get(HawkConfig.HOME_REC_STYLE, false)); if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { UserFragment.tvHotListForGrid.setVisibility(View.VISIBLE); UserFragment.tvHotListForLine.setVisibility(View.GONE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_grid), Toast.LENGTH_SHORT).show(); tvStyle.setImageResource(R.drawable.hm_up_down); } else { UserFragment.tvHotListForGrid.setVisibility(View.GONE); UserFragment.tvHotListForLine.setVisibility(View.VISIBLE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_line), Toast.LENGTH_SHORT).show(); tvStyle.setImageResource(R.drawable.hm_left_right); } } catch (Exception ex) {} });
+        tvDraw.setOnClickListener(view->{ jumpActivity(AppsActivity.class); });
+        tvMenu.setOnClickListener(view->{ jumpActivity(SettingActivity.class); });
+        tvMenu.setOnLongClickListener(view->{ startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null))); return true; });
+        tvDate.setOnClickListener(view->{ startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); });
+        setLoadSir(this.contentLayout);
     }
-    ^
-Error: /home/runner/work/Box/Box/app/src/main/java/com/github/tvbox/osc/ui/activity/HomeActivity.java:30: error: class, interface, or enum expected
+    public static void homeRecf() { try { int homeRec = Hawk.get(HawkConfig.HOME_REC, -1); int limit = 2; if (homeRec == limit) homeRec = -1; homeRec++; Hawk.put(HawkConfig.HOME_REC, homeRec); } catch (Exception ignore) {} }
+    public static boolean reHome(Context appContext) { Intent intent = new Intent(appContext, HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); appContext.startActivity(intent); return true; }
+    private boolean skipNextUpdate = false;
+    private void initViewModel() {
+        sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
+        sourceViewModel.sortResult.observe(this, absXml -> {
+                if (skipNextUpdate) { skipNextUpdate = false; return; }
+                showSuccess();
+                if (absXml != null && absXml.classes != null && absXml.classes.sortList != null) { sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.classes.sortList, true)); }
+                else { sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); }
+                initViewPager(absXml);
+                SourceBean home = ApiConfig.get().getHomeSourceBean();
+                if (HomeShow) { if (home != null && home.getName() != null && !home.getName().isEmpty()) tvName.setText(home.getName()); tvName.clearAnimation(); }
+        });
+    }
+    private boolean dataInitOk = false;
+    private boolean jarInitOk = false;
+    boolean isNetworkAvailable() { ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE); NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo(); return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting(); }
+    private void initData() {
+        if (isNetworkAvailable()) {
+            try {
+                ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+                if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_wifi)); }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_mobile)); }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_ETHERNET) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_lan)); }
+            } catch (Exception ignore) {}
+        }
+        try { if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { tvStyle.setImageResource(R.drawable.hm_up_down); } else { tvStyle.setImageResource(R.drawable.hm_left_right); } } catch (Exception ignore) {}
+        mGridView.requestFocus();
+        if (dataInitOk && jarInitOk) { sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey()); try { if (Hawk.get(HawkConfig.HOME_DEFAULT_SHOW, false)) { jumpActivity(LivePlayActivity.class); } } catch (Exception ignore) {} return; }
+        tvNameAnimation(); showLoading();
+        if (dataInitOk && !jarInitOk) {
+            if (!ApiConfig.get().getSpider().isEmpty()) {
+                ApiConfig.get().loadJar(useCacheConfig, ApiConfig.get().getSpider(), new ApiConfig.LoadConfigCallback() {
+                    @Override public void success() { jarInitOk = true; mHandler.postDelayed(() -> { if (!useCacheConfig) { Toast.makeText(HomeActivity.this, getString(R.string.hm_ok), Toast.LENGTH_SHORT).show(); } initData(); }, 50); }
+                    @Override public void retry() {}
+                    @Override public void error(String msg) { jarInitOk = true; dataInitOk = true; mHandler.postDelayed(() -> { if ("".equals(msg)) Toast.makeText(HomeActivity.this, getString(R.string.hm_notok), Toast.LENGTH_SHORT).show(); else Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_SHORT).show(); initData(); },50); }
+                });
+            }
+            return;
+        }
+        ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
+            TipDialog dialog = null;
+            @Override public void retry() { mHandler.post(() -> initData()); }
+            @Override public void success() { dataInitOk = true; if (ApiConfig.get().getSpider().isEmpty()) { jarInitOk = true; } mHandler.postDelayed(() -> initData(), 50); }
+            @Override public void error(String msg) {
+                if (msg.equalsIgnoreCase("-1")) { mHandler.post(() -> { dataInitOk = true; jarInitOk = true; initData(); }); return; }
+                mHandler.post(() -> {
+                    if (dialog == null) dialog = new TipDialog(HomeActivity.this, msg, getString(R.string.hm_retry), getString(R.string.hm_cancel), new TipDialog.OnListener() {
+                        @Override public void left() { mHandler.post(() -> { initData(); dialog.hide(); }); }
+                        @Override public void right() { dataInitOk = true; jarInitOk = true; mHandler.post(() -> { initData(); dialog.hide(); }); }
+                        @Override public void cancel() { dataInitOk = true; jarInitOk = true; mHandler.post(() -> { initData(); dialog.hide(); }); }
+                    });
+                    if (!dialog.isShowing()) dialog.show();
+                });
+            }
+        }, this);
+    }
+    private void initViewPager(AbsSortXml absXml) {
+        if (sortAdapter.getData().size() > 0) {
+            for (MovieSort.SortData data : sortAdapter.getData()) {
+                if (data.id.equals("my0")) {
+                    try {
+                        if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && absXml != null && absXml.videoList != null && absXml.videoList.size() > 0) { fragments.add(UserFragment.newInstance(absXml.videoList)); }
+                        else { fragments.add(UserFragment.newInstance(null)); }
+                    } catch (Exception e) { fragments.add(UserFragment.newInstance(null)); }
+                } else { fragments.add(GridFragment.newInstance(data)); }
+            }
+            pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
+            try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
+            mViewPager.setPageTransformer(true, new DefaultTransformer());
+            mViewPager.setAdapter(pageAdapter);
+            mViewPager.setCurrentItem(currentSelected, false);
+        }
+    }
+    @Override public void onBackPressed() {
+        if(isLoading()){ refreshEmpty(); return; }
+        try { if (HawkConfig.hotVodDelete) { HawkConfig.hotVodDelete = false; UserFragment.homeHotVodAdapter.notifyDataSetChanged(); return; } } catch (Exception ignore) {}
+        if (this.fragments.size() <= 0 || this.sortFocused >= this.fragments.size() || this.sortFocused < 0) { doExit(); return; }
+        BaseLazyFragment baseLazyFragment = this.fragments.get(this.sortFocused);
+        if (baseLazyFragment instanceof GridFragment) {
+            GridFragment grid = (GridFragment) baseLazyFragment;
+            if (grid.restoreView()) { return; }
+            if (this.sortFocusView != null && !this.sortFocusView.isFocused()) { this.sortFocusView.requestFocus(); }
+            else if (this.sortFocused != 0) { this.mGridView.setSelection(0); } else { doExit(); }
+        } else if (baseLazyFragment instanceof UserFragment && UserFragment.tvHotListForGrid.canScrollVertically(-1)) {
+            UserFragment.tvHotListForGrid.scrollToPosition(0); this.mGridView.setSelection(0);
+        } else { doExit(); }
+    }
+    private void doExit() {
+        if (System.currentTimeMillis() - mExitTime < 2000) {
+            AppManager.getInstance().finishAllActivity(); EventBus.getDefault().unregister(this); ControlManager.get().stopServer(); finish(); android.os.Process.killProcess(android.os.Process.myPid()); System.exit(0);
+        } else { mExitTime = System.currentTimeMillis(); Toast.makeText(mContext, getString(R.string.hm_exit), Toast.LENGTH_SHORT).show(); }
+    }
+    @Override protected void onResume() {
+        super.onResume();
+        SourceBean home = ApiConfig.get().getHomeSourceBean();
+        try {
+            if (Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false)) { if (home != null && home.getName() != null && !home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); } } else { tvName.setText(R.string.app_name); }
+            if (Hawk.get(HawkConfig.HOME_SEARCH_POSITION, true)) { tvFind.setVisibility(View.VISIBLE); } else { tvFind.setVisibility(View.GONE); }
+            if (Hawk.get(HawkConfig.HOME_MENU_POSITION, true)) { tvMenu.setVisibility(View.VISIBLE); } else { tvMenu.setVisibility(View.GONE); }
+        } catch (Exception ignore) { tvName.setText(R.string.app_name); }
+        mHandler.post(mRunnable);
+    }
+    @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void refresh(RefreshEvent event) {
+        if (event.type == RefreshEvent.TYPE_PUSH_URL) {
+            if (ApiConfig.get().getSource("push_agent") != null) {
+                Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); HomeActivity.this.startActivity(newIntent);
+            }
+        }
+    }
+    private void showFilterIcon(int count) { boolean activated = count > 0; currentView.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE); ImageView imgView = currentView.findViewById(R.id.tvFilter); imgView.setColorFilter(activated ? this.getThemeColor() : Color.WHITE); }
+    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused != currentSelected) { currentSelected = sortFocused; mViewPager.setCurrentItem(sortFocused, false); changeTop(sortFocused != 0); } } } };
+    @Override public boolean dispatchKeyEvent(KeyEvent event) { if (topHide < 0) return false; if (event.getAction() == KeyEvent.ACTION_DOWN) { if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) { showSiteSwitch(); } } return super.dispatchKeyEvent(event); }
+    byte topHide = 0;
+    private void changeTop(boolean hide) {
+        ViewObj viewObj = new ViewObj(topLayout, (ViewGroup.MarginLayoutParams) topLayout.getLayoutParams());
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.addListener(new Animator.AnimatorListener() { @Override public void onAnimationStart(Animator animation) {} @Override public void onAnimationEnd(Animator animation) { topHide = (byte) (hide ? 1 : 0); } @Override public void onAnimationCancel(Animator animation) {} @Override public void onAnimationRepeat(Animator animation) {} });
+        if (hide && topHide == 0) {
+            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 20.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f))), ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f))), ObjectAnimator.ofFloat(this.topLayout, "alpha", 1.0f, 0.0f));
+            animatorSet.setDuration(250); animatorSet.start(); tvName.setFocusable(false); tvWifi.setFocusable(false); tvFind.setFocusable(false); tvStyle.setFocusable(false); tvDraw.setFocusable(false); tvMenu.setFocusable(false); return;
+        }
+        if (!hide && topHide == 1) {
+            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 20.0f))), ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f))), ObjectAnimator.ofFloat(this.topLayout, "alpha", 0.0f, 1.0f));
+            animatorSet.setDuration(250); animatorSet.start(); tvName.setFocusable(true); tvWifi.setFocusable(true); tvFind.setFocusable(true); tvStyle.setFocusable(true); tvDraw.setFocusable(true); tvMenu.setFocusable(true);
+        }
+    }
+    @Override protected void onDestroy() { super.onDestroy(); EventBus.getDefault().unregister(this); AppManager.getInstance().appExit(0); ControlManager.get().stopServer(); }
+    void showSiteSwitch() {
+        List<SourceBean> sites = new ArrayList<>();
+        for (SourceBean sb : ApiConfig.get().getSourceBeanList()) { if (sb.getHide() == 0) sites.add(sb); }
+        if (sites.size() > 0) {
+            SelectDialog<SourceBean> dialog = new SelectDialog<>(HomeActivity.this);
+            int spanCount = (int) Math.floor(sites.size() / 10); if (spanCount <= 1) spanCount = 1; if (spanCount >= 3) spanCount = 3;
+            TvRecyclerView tvRecyclerView = dialog.findViewById(R.id.list); tvRecyclerView.setLayoutManager(new V7GridLayoutManager(dialog.getContext(), spanCount));
+            ConstraintLayout cl_root = dialog.findViewById(R.id.cl_root); ViewGroup.LayoutParams clp = cl_root.getLayoutParams(); if (spanCount != 1) { clp.width = AutoSizeUtils.mm2px(dialog.getContext(), 400 + 260 * (spanCount - 1)); }
+            dialog.setTip(getString(R.string.dia_source));
+            dialog.setAdapter(tvRecyclerView, new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
+                @Override public void click(SourceBean value, int pos) { ApiConfig.get().setSourceBean(value); reloadHome(); }
+                @Override public String getDisplay(SourceBean val) { return val.getName(); }
+            }, new DiffUtil.ItemCallback<SourceBean>() {
+                @Override public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) { return oldItem == newItem; }
+                @Override public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) { return oldItem.getKey().equals(newItem.getKey()); }
+            }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
+            dialog.setOnDismissListener(dialog1 -> {});
+            dialog.show();
+        }
+    }
+    void reloadHome() { Intent intent = new Intent(getApplicationContext(), HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); HomeActivity.this.startActivity(intent); }
+    private void refreshEmpty() { skipNextUpdate=true; showSuccess(); sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); tvName.clearAnimation(); }
+    private void tvNameAnimation() { AlphaAnimation blinkAnimation = new AlphaAnimation(0.0f, 1.0f); blinkAnimation.setDuration(500); blinkAnimation.setStartOffset(20); blinkAnimation.setRepeatMode(Animation.REVERSE); blinkAnimation.setRepeatCount(Animation.INFINITE); tvName.startAnimation(blinkAnimation); }
 }
-^
-
-> Task :app:kaptArm64GenericNormalDebugKotlin FAILED
-> Task :app:desugarArm64GenericNormalDebugFileDependencies
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-
-Execution failed for task ':app:kaptArm64GenericNormalDebugKotlin'.
-> A failure occurred while executing org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask$KaptExecutionWorkAction
-Deprecated Gradle features were used in this build, making it incompatible with Gradle 8.0.
-   > java.lang.reflect.InvocationTargetException (no error message)
-
-
-You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
-* Try:
-
-> Run with --info or --debug option to get more log output.
-See https://docs.gradle.org/7.5/userguide/command_line_interface.html#sec:command_line_warnings
-> Run with --scan to get full insights.
-
-
-* Exception is:
-org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':app:kaptArm64GenericNormalDebugKotlin'.
-	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:142)
-	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:282)
-	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:140)
-	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:128)
-	at org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter.execute(CleanupStaleOutputsExecuter.java:77)
-	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
-	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
-	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
-	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:56)
-	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
-Execution optimizations have been disabled for 1 invalid unit(s) of work during this build to ensure correctness.
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
-	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:69)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:327)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:314)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:307)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:293)
-	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:417)
-	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:339)
-	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
-	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
-Caused by: org.gradle.workers.internal.DefaultWorkerExecutor$WorkExecutionException: A failure occurred while executing org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask$KaptExecutionWorkAction
-	at org.gradle.workers.internal.DefaultWorkerExecutor$WorkItemExecution.waitForCompletion(DefaultWorkerExecutor.java:339)
-	at org.gradle.internal.work.DefaultAsyncWorkTracker.lambda$waitForItemsAndGatherFailures$2(DefaultAsyncWorkTracker.java:130)
-	at org.gradle.internal.Factories$1.create(Factories.java:31)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:321)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLocks(DefaultWorkerLeaseService.java:304)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withoutLock(DefaultWorkerLeaseService.java:309)
-	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:126)
-	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForItemsAndGatherFailures(DefaultAsyncWorkTracker.java:92)
-	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForAll(DefaultAsyncWorkTracker.java:78)
-	at org.gradle.internal.work.DefaultAsyncWorkTracker.waitForCompletion(DefaultAsyncWorkTracker.java:66)
-	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:244)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.run(DefaultBuildOperationExecutor.java:68)
-	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:221)
-	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:204)
-	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:187)
-	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:165)
-	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:89)
-	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:40)
-	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:53)
-	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:50)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:50)
-	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:40)
-	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
-	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
-	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:41)
-	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:74)
-	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
-	at org.gradle.internal.execution.steps.CreateOutputsStep.execute(CreateOutputsStep.java:51)
-	at org.gradle.internal.execution.steps.CreateOutputsStep.execute(CreateOutputsStep.java:29)
-	at org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep.executeDelegateBroadcastingChanges(CaptureStateAfterExecutionStep.java:124)
-	at org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep.execute(CaptureStateAfterExecutionStep.java:80)
-	at org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep.execute(CaptureStateAfterExecutionStep.java:58)
-	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:48)
-	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:36)
-	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:181)
-	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:71)
-	at org.gradle.internal.Either$Right.fold(Either.java:175)
-	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:59)
-	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:69)
-	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:47)
-	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:36)
-	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:25)
-	at org.gradle.internal.execution.steps.RecordOutputsStep.execute(RecordOutputsStep.java:36)
-	at org.gradle.internal.execution.steps.RecordOutputsStep.execute(RecordOutputsStep.java:22)
-	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:110)
-	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:56)
-	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:56)
-	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:38)
-	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:73)
-	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:44)
-	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
-	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
-	at org.gradle.internal.execution.steps.ResolveCachingStateStep.execute(ResolveCachingStateStep.java:89)
-	at org.gradle.internal.execution.steps.ResolveCachingStateStep.execute(ResolveCachingStateStep.java:50)
-	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:114)
-	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:57)
-	at org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.execute(CaptureStateBeforeExecutionStep.java:76)
-	at org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.execute(CaptureStateBeforeExecutionStep.java:50)
-	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.executeWithNoEmptySources(SkipEmptyWorkStep.java:254)
-	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.execute(SkipEmptyWorkStep.java:91)
-	at org.gradle.internal.execution.steps.SkipEmptyWorkStep.execute(SkipEmptyWorkStep.java:56)
-	at org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep.execute(RemoveUntrackedExecutionStateStep.java:32)
-	at org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep.execute(RemoveUntrackedExecutionStateStep.java:21)
-	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
-	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:43)
-	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:31)
-	at org.gradle.internal.execution.steps.AssignWorkspaceStep.lambda$execute$0(AssignWorkspaceStep.java:40)
-	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:281)
-	at org.gradle.internal.execution.steps.AssignWorkspaceStep.execute(AssignWorkspaceStep.java:40)
-	at org.gradle.internal.execution.steps.AssignWorkspaceStep.execute(AssignWorkspaceStep.java:30)
-	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:37)
-	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:27)
-	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
-	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:33)
-	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:76)
-	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:139)
-	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:128)
-	at org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter.execute(CleanupStaleOutputsExecuter.java:77)
-	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
-	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
-	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
-	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:56)
-	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
-	at org.gradle.execution.plan.LocalTaskNodeExecutor.execute(LocalTaskNodeExecutor.java:69)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:327)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:314)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:307)
-	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:293)
-	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:417)
-	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:339)
-	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
-	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
-Caused by: java.lang.reflect.InvocationTargetException
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at org.jetbrains.kotlin.gradle.internal.KaptExecution.run(KaptWithoutKotlincTask.kt:320)
-	at org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask$KaptExecutionWorkAction.execute(KaptWithoutKotlincTask.kt:266)
-	at org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:63)
-	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:66)
-	at org.gradle.workers.internal.NoIsolationWorkerFactory$1$1.create(NoIsolationWorkerFactory.java:62)
-	at org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:100)
-	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.lambda$execute$0(NoIsolationWorkerFactory.java:62)
-	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:44)
-	at org.gradle.workers.internal.AbstractWorker$1.call(AbstractWorker.java:41)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:199)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:157)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
-	at org.gradle.internal.operations.DefaultBuildOperationExecutor.call(DefaultBuildOperationExecutor.java:73)
-	at org.gradle.workers.internal.AbstractWorker.executeWrappedInBuildOperation(AbstractWorker.java:41)
-	at org.gradle.workers.internal.NoIsolationWorkerFactory$1.execute(NoIsolationWorkerFactory.java:59)
-	at org.gradle.workers.internal.DefaultWorkerExecutor.lambda$submitWork$2(DefaultWorkerExecutor.java:205)
-	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runExecution(DefaultConditionalExecutionQueue.java:187)
-	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.access$700(DefaultConditionalExecutionQueue.java:120)
-	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner$1.run(DefaultConditionalExecutionQueue.java:162)
-	at org.gradle.internal.Factories$1.create(Factories.java:31)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:249)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:109)
-	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:114)
-	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.runBatch(DefaultConditionalExecutionQueue.java:157)
-	at org.gradle.internal.work.DefaultConditionalExecutionQueue$ExecutionRunner.run(DefaultConditionalExecutionQueue.java:126)
-	... 2 more
-Caused by: java.lang.NullPointerException: processingEnv must not be null
-	at androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor$xEnv$2.invoke(JavacBasicAnnotationProcessor.kt:38)
-	at androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor$xEnv$2.invoke(JavacBasicAnnotationProcessor.kt:37)
-	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
-	at androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor.getXEnv(JavacBasicAnnotationProcessor.kt:37)
-	at androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor.getXProcessingEnv(JavacBasicAnnotationProcessor.kt:47)
-	at androidx.room.RoomProcessor.getSupportedOptions(RoomProcessor.kt:53)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor.getSupportedOptions(incrementalProcessors.kt)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor.createDependencyCollector(incrementalProcessors.kt:49)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor.access$createDependencyCollector(incrementalProcessors.kt:26)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor$dependencyCollector$1.invoke(incrementalProcessors.kt:29)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor$dependencyCollector$1.invoke(incrementalProcessors.kt:29)
-	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:74)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor.getRuntimeType(incrementalProcessors.kt:84)
-	at org.jetbrains.kotlin.kapt3.base.incremental.IncrementalAptCache.updateCache(IncrementalAptCache.kt:30)
-	at org.jetbrains.kotlin.kapt3.base.incremental.JavaClassCacheManager.updateCache(cache.kt:23)
-	at org.jetbrains.kotlin.kapt3.base.AnnotationProcessingKt.doAnnotationProcessing(annotationProcessing.kt:102)
-	at org.jetbrains.kotlin.kapt3.base.AnnotationProcessingKt.doAnnotationProcessing$default(annotationProcessing.kt:33)
-	at org.jetbrains.kotlin.kapt3.base.Kapt.kapt(Kapt.kt:47)
-	... 34 more
-
-
-* Get more help at https://help.gradle.org
-
-BUILD FAILED in 1m 47s
-Please consult deprecation warnings for more details.
-49 actionable tasks: 49 executed
-Error: Process completed with exit code 1.
