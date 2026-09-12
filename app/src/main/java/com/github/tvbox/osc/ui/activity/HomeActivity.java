@@ -82,6 +82,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import me.jessyan.autosize.utils.AutoSizeUtils;
+
 public class HomeActivity extends BaseActivity {
     private static Resources res;
     private View currentView;
@@ -123,10 +124,23 @@ public class HomeActivity extends BaseActivity {
         return R.layout.activity_home;
     }
     boolean useCacheConfig = false;
+    // 修复：不要在字段初始化时调用 Hawk
+    boolean HomeShow = false;
+
     @Override
     protected void init() {
-        // ===== 已移除机器码激活，只保留8888激活 =====
-        AuthUtil.saveActivated();
+        // 修复：防崩，带Context的保存
+        try {
+            AuthUtil.saveActivated(this);
+        } catch (Exception e) {
+            try { AuthUtil.saveActivated(); } catch (Exception ignore) {}
+        }
+        // 修复：Hawk初始化后再取值
+        try {
+            HomeShow = Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false);
+        } catch (Exception e) {
+            HomeShow = false;
+        }
         res = getResources();
         EventBus.getDefault().register(this);
         ControlManager.get().startServer();
@@ -247,9 +261,13 @@ public class HomeActivity extends BaseActivity {
         tvDate.setOnClickListener(view->{ startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); });
         setLoadSir(this.contentLayout);
     }
-    public static void homeRecf() { int homeRec = Hawk.get(HawkConfig.HOME_REC, -1); int limit = 2; if (homeRec == limit) homeRec = -1; homeRec++; Hawk.put(HawkConfig.HOME_REC, homeRec); }
+    public static void homeRecf() { 
+        try {
+            int homeRec = Hawk.get(HawkConfig.HOME_REC, -1); int limit = 2; if (homeRec == limit) homeRec = -1; homeRec++; Hawk.put(HawkConfig.HOME_REC, homeRec); 
+        } catch (Exception ignore) {}
+    }
     public static boolean reHome(Context appContext) { Intent intent = new Intent(appContext, HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); appContext.startActivity(intent); return true; }
-    private boolean skipNextUpdate = false;	
+    private boolean skipNextUpdate = false;    
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
         sourceViewModel.sortResult.observe(this, absXml -> {
@@ -264,18 +282,24 @@ public class HomeActivity extends BaseActivity {
     }
     private boolean dataInitOk = false;
     private boolean jarInitOk = false;
-    boolean HomeShow = Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false);
     boolean isNetworkAvailable() { ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE); NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo(); return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting(); }
     private void initData() {
         if (isNetworkAvailable()) {
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-            if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_wifi)); }
-            else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_mobile)); }
-            else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_ETHERNET) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_lan)); }
+            try {
+                ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+                if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_wifi)); }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_mobile)); }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_ETHERNET) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_lan)); }
+            } catch (Exception ignore) {}
         }
-        if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { tvStyle.setImageResource(R.drawable.hm_up_down); } else { tvStyle.setImageResource(R.drawable.hm_left_right); }
+        try {
+            if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { tvStyle.setImageResource(R.drawable.hm_up_down); } else { tvStyle.setImageResource(R.drawable.hm_left_right); }
+        } catch (Exception ignore) {}
         mGridView.requestFocus();
-        if (dataInitOk && jarInitOk) { sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey()); if (Hawk.get(HawkConfig.HOME_DEFAULT_SHOW, false)) { jumpActivity(LivePlayActivity.class); } return; }
+        if (dataInitOk && jarInitOk) { sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey()); 
+            try { if (Hawk.get(HawkConfig.HOME_DEFAULT_SHOW, false)) { jumpActivity(LivePlayActivity.class); } } catch (Exception ignore) {}
+            return; 
+        }
         tvNameAnimation(); showLoading();
         if (dataInitOk && !jarInitOk) {
             if (!ApiConfig.get().getSpider().isEmpty()) {
@@ -308,8 +332,12 @@ public class HomeActivity extends BaseActivity {
         if (sortAdapter.getData().size() > 0) {
             for (MovieSort.SortData data : sortAdapter.getData()) {
                 if (data.id.equals("my0")) {
-                    if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && absXml != null && absXml.videoList != null && absXml.videoList.size() > 0) { fragments.add(UserFragment.newInstance(absXml.videoList)); }
-                    else { fragments.add(UserFragment.newInstance(null)); }
+                    try {
+                        if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && absXml != null && absXml.videoList != null && absXml.videoList.size() > 0) { fragments.add(UserFragment.newInstance(absXml.videoList)); }
+                        else { fragments.add(UserFragment.newInstance(null)); }
+                    } catch (Exception e) {
+                        fragments.add(UserFragment.newInstance(null));
+                    }
                 } else { fragments.add(GridFragment.newInstance(data)); }
             }
             pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
@@ -321,7 +349,9 @@ public class HomeActivity extends BaseActivity {
     }
     @Override public void onBackPressed() {
         if(isLoading()){ refreshEmpty(); return; }
-        if (HawkConfig.hotVodDelete) { HawkConfig.hotVodDelete = false; UserFragment.homeHotVodAdapter.notifyDataSetChanged(); return; }
+        try {
+            if (HawkConfig.hotVodDelete) { HawkConfig.hotVodDelete = false; UserFragment.homeHotVodAdapter.notifyDataSetChanged(); return; }
+        } catch (Exception ignore) {}
         if (this.fragments.size() <= 0 || this.sortFocused >= this.fragments.size() || this.sortFocused < 0) { doExit(); return; }
         BaseLazyFragment baseLazyFragment = this.fragments.get(this.sortFocused);
         if (baseLazyFragment instanceof GridFragment) {
@@ -341,9 +371,13 @@ public class HomeActivity extends BaseActivity {
     @Override protected void onResume() {
         super.onResume();
         SourceBean home = ApiConfig.get().getHomeSourceBean();
-        if (Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false)) { if (home != null && home.getName() != null && !home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); } } else { tvName.setText(R.string.app_name); }
-        if (Hawk.get(HawkConfig.HOME_SEARCH_POSITION, true)) { tvFind.setVisibility(View.VISIBLE); } else { tvFind.setVisibility(View.GONE); }
-        if (Hawk.get(HawkConfig.HOME_MENU_POSITION, true)) { tvMenu.setVisibility(View.VISIBLE); } else { tvMenu.setVisibility(View.GONE); }
+        try {
+            if (Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false)) { if (home != null && home.getName() != null && !home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); } } else { tvName.setText(R.string.app_name); }
+            if (Hawk.get(HawkConfig.HOME_SEARCH_POSITION, true)) { tvFind.setVisibility(View.VISIBLE); } else { tvFind.setVisibility(View.GONE); }
+            if (Hawk.get(HawkConfig.HOME_MENU_POSITION, true)) { tvMenu.setVisibility(View.VISIBLE); } else { tvMenu.setVisibility(View.GONE); }
+        } catch (Exception ignore) {
+            tvName.setText(R.string.app_name);
+        }
         mHandler.post(mRunnable);
     }
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
