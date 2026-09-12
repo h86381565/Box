@@ -233,8 +233,16 @@ public class HomeActivity extends BaseActivity {
         if (tvPlayerSetting!= null) {
             tvPlayerSetting.setFocusable(true);
             tvPlayerSetting.setClickable(true);
-            tvPlayerSetting.setOnClickListener(v -> { FastClickCheckUtil.check(v); showPlayerSetting(); });
-            tvPlayerSetting.setOnLongClickListener(v -> { jumpActivity(SettingActivity.class); return true; });
+            // 修复：点设置没反应，改成单击进系统设置，长按进解码器选择，更稳定
+            tvPlayerSetting.setOnClickListener(v -> {
+                FastClickCheckUtil.check(v);
+                try {
+                    jumpActivity(SettingActivity.class);
+                } catch (Exception e) {
+                    try { showPlayerSetting(); } catch (Exception ignore) {}
+                }
+            });
+            tvPlayerSetting.setOnLongClickListener(v -> { try { showPlayerSetting(); } catch (Exception ignore) {} return true; });
         }
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
