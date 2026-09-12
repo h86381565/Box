@@ -233,16 +233,17 @@ public class HomeActivity extends BaseActivity {
         if (tvPlayerSetting!= null) {
             tvPlayerSetting.setFocusable(true);
             tvPlayerSetting.setClickable(true);
-            // 修复：点设置没反应，改成单击进系统设置，长按进解码器选择，更稳定
+            // 你要的之前的设置页面：单击是VIP PRO设置，长按是系统设置
             tvPlayerSetting.setOnClickListener(v -> {
                 FastClickCheckUtil.check(v);
                 try {
-                    jumpActivity(SettingActivity.class);
+                    showPlayerSetting();
                 } catch (Exception e) {
-                    try { showPlayerSetting(); } catch (Exception ignore) {}
+                    // 如果VIP设置弹不出来，兜底进系统设置，避免没反应
+                    try { jumpActivity(SettingActivity.class); } catch (Exception ignore) {}
                 }
             });
-            tvPlayerSetting.setOnLongClickListener(v -> { try { showPlayerSetting(); } catch (Exception ignore) {} return true; });
+            tvPlayerSetting.setOnLongClickListener(v -> { try { jumpActivity(SettingActivity.class); } catch (Exception ignore) {} return true; });
         }
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
