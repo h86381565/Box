@@ -269,50 +269,104 @@ public class HomeActivity extends BaseActivity {
 
 private void showPlayerSetting() {
         try {
-            // 播放页面的默认解码：系统 / IJK / Exo / 阿里 / MX / Reex / Kodi
-            // 点你发的那个投屏图标 ![](container:///mnt/data/image_c617d9.png) 就能换
-            List<String> players = new ArrayList<>();
-            players.add("系统");
-            players.add("IJK");
-            players.add("Exo");
-            players.add("阿里");
-            players.add("MX Player");
-            players.add("Reex Player");
-            players.add("Kodi");
-            int type = Hawk.get(HawkConfig.PLAY_TYPE, 1);
-            String ext = Hawk.get("EXT_PLAY_TYPE", "");
-            int cur = 1;
-            if (type == 0) cur = 0;
-            else if (type == 1 && (ext == null || ext.isEmpty())) cur = 1;
-            else if (type == 2 && (ext == null || ext.isEmpty())) cur = 2;
-            else if ("ALI".equals(ext)) cur = 3;
-            else if ("MX".equals(ext)) cur = 4;
-            else if ("REEX".equals(ext)) cur = 5;
-            else if ("KODI".equals(ext)) cur = 6;
-            if (cur <0 || cur>6) cur = 1;
-
+            // 恢复主页VIP PRO设置页，不动播放器核心功能
+            List<String> items = new ArrayList<>();
+            items.add("★ 自动选择最优解码 (" + getDeviceBestHint() + ")");
+            items.add("播放器内核: " + getCurrentPlayerName());
+            items.add("解码方式: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解"));
+            items.add("广告过滤: " + (Hawk.get("PARSE_AD_FILTER", true) ? "开启 ★" : "关闭"));
+            items.add("---------- 高级设置 ----------");
+            items.add("渲染方式: " + Hawk.get(HawkConfig.PLAY_RENDER, "TextureView"));
+            items.add("搜索展示: " + Hawk.get("SEARCH_DISPLAY", "缩略图"));
+            items.add("嗅探Webview: " + Hawk.get("SNIFF_WEBVIEW", "系统自带"));
+            items.add("安全DNS: " + (Hawk.get("SECURE_DNS", false) ? "开启" : "关闭"));
+            items.add("切换线路");
+            items.add("清理缓存");
+            items.add("应用管理");
+            items.add("观看历史");
+            items.add("筛选全部影视");
             SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("请选择默认播放器");
+            dialog.setTip("ULTRA BOX PRO 设置");
             TvRecyclerView rv = dialog.findViewById(R.id.list);
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
             dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
                 @Override public void click(String value, int pos) {
-                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "ALI"); }
-                    else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "MX"); }
-                    else if (pos == 5) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "REEX"); }
-                    else if (pos == 6) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "KODI"); }
-                    Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
+                    if (pos == 0) autoSelectBestDecoder();
+                    else if (pos == 1) showPlayerTypeSwitch();
+                    else if (pos == 2) showDecodeSwitch();
+                    else if (pos == 3) {
+                        boolean cur = Hawk.get("PARSE_AD_FILTER", true);
+                        Hawk.put("PARSE_AD_FILTER", !cur);
+                        Toast.makeText(HomeActivity.this, !cur ? "广告过滤已开启" : "广告过滤已关闭", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 5) showRenderSwitch();
+                    else if (pos == 6) showSearchDisplaySwitch();
+                    else if (pos == 7) showSniffSwitch();
+                    else if (pos == 8) {
+                        boolean cur = Hawk.get("SECURE_DNS", false);
+                        Hawk.put("SECURE_DNS", !cur);
+                        Toast.makeText(HomeActivity.this, "安全DNS: " + (!cur ? "开启" : "关闭"), Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 9) showSiteSwitch();
+                    else if (pos == 10) {
+                        try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {}
+                        Toast.makeText(HomeActivity.this, "缓存已清理", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 11) { try { jumpActivity(AppsActivity.class); } catch (Exception e) {} }
+                    else if (pos == 12) { openHistory(); }
+                    else if (pos == 13) { showAllFilter(); }
                 }
                 @Override public String getDisplay(String val) { return val; }
             }, new DiffUtil.ItemCallback<String>() {
                 @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
                 @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-            }, players, cur);
+            }, items, -1);
             dialog.show();
+        } catch (Exception ignore) {}
+    }
+
+    private void showAllFilter() {
+        try {
+            List<String> filters = new ArrayList<>();
+            filters.add("全部影视");
+            filters.add("电影");
+            filters.add("电视剧");
+            filters.add("动漫");
+            filters.add("综艺");
+            filters.add("短视频");
+            SelectDialog<String> d = new SelectDialog<>(this);
+            d.setTip("筛选所有影视资源");
+            TvRecyclerView rv = d.findViewById(R.id.list);
+            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(), 1, false));
+            d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String v, int p) {
+                    // 切换到对应分类，GridFragment会自动筛选
+                    try {
+                        if (sortAdapter != null) {
+                            for (int i=0;i<sortAdapter.getData().size();i++) {
+                                MovieSort.SortData sd = sortAdapter.getData().get(i);
+                                if (sd.name != null && v.contains(sd.name.substring(0,2))) {
+                                    sortFocused = i;
+                                    mHandler.removeCallbacks(mDataRunnable);
+                                    mHandler.post(mDataRunnable);
+                                    break;
+                                }
+                            }
+                            if (p == 0) {
+                                // 全部影视：回到第一个有数据的分类
+                                sortFocused = 0;
+                                mHandler.removeCallbacks(mDataRunnable);
+                                mHandler.post(mDataRunnable);
+                            }
+                        }
+                    } catch (Exception ignore) {}
+                    Toast.makeText(HomeActivity.this, "已筛选: " + v, Toast.LENGTH_SHORT).show();
+                    d.dismiss();
+                }
+                @Override public String getDisplay(String val){return val;}
+            }, new DiffUtil.ItemCallback<String>(){@Override public boolean areItemsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);} @Override public boolean areContentsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);}}, filters, 0);
+            d.show();
         } catch (Exception ignore) {}
     }
 
@@ -423,34 +477,52 @@ private void showPlayerSetting() {
     private void showPlayerTypeSwitch() {
         try {
             List<String> players = new ArrayList<>();
-            players.add("Exo硬解 - 4K最快 ★★ (推荐)");
-            players.add("IJK硬解 - 平衡 ★");
-            players.add("IJK软解 - 兼容最强");
-            players.add("Exo软解 - 高码率");
-            players.add("系统播放器");
-            int cur = Hawk.get(HawkConfig.PLAY_TYPE, 1);
+            players.add("系统");
+            players.add("IJK - 默认");
+            players.add("Exo - 4K推荐");
+            players.add("阿里");
+            players.add("MX Player");
+            players.add("Reex Player");
+            players.add("Kodi");
+            players.add("IJK硬解 - 平衡");
+            players.add("IJK软解 - 兼容");
+            int type = Hawk.get(HawkConfig.PLAY_TYPE, 1);
+            String ext = Hawk.get("EXT_PLAY_TYPE", "");
             boolean isSoft = Hawk.get("PLAY_USE_SOFT", false);
-            int curIdx = 0;
-            if (cur == 1 && !isSoft) curIdx = 0; else if (cur == 1 && isSoft) curIdx = 1; else if (cur == 2 && !isSoft) curIdx = 2; else if (cur == 2 && isSoft) curIdx = 3; else if (cur == 0) curIdx = 4;
+            int cur = 1;
+            if (type == 0) cur = 0;
+            else if (type == 1 && (ext == null || ext.isEmpty()) && !isSoft) cur = 1;
+            else if (type == 2 && (ext == null || ext.isEmpty())) cur = 2;
+            else if ("ALI".equals(ext)) cur = 3;
+            else if ("MX".equals(ext)) cur = 4;
+            else if ("REEX".equals(ext)) cur = 5;
+            else if ("KODI".equals(ext)) cur = 6;
+            else if (type == 1 && !isSoft) cur = 7;
+            else if (type == 1 && isSoft) cur = 8;
+
             SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("选择播放内核");
+            dialog.setTip("请选择默认播放器");
             TvRecyclerView rv = dialog.findViewById(R.id.list);
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
             dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
                 @Override public void click(String value, int pos) {
-                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
                     else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_LONG).show();
+                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "ALI"); }
+                    else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "MX"); }
+                    else if (pos == 5) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "REEX"); }
+                    else if (pos == 6) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("EXT_PLAY_TYPE", "KODI"); }
+                    else if (pos == 7) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 8) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_SHORT).show();
                     dialog.dismiss();
                 }
                 @Override public String getDisplay(String val) { return val; }
             }, new DiffUtil.ItemCallback<String>() {
                 @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
                 @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-            }, players, curIdx);
+            }, players, cur);
             dialog.show();
         } catch (Exception ignore) {}
     }
