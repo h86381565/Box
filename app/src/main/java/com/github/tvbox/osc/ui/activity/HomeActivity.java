@@ -1,3 +1,4 @@
+
 package com.github.tvbox.osc.ui.activity;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -247,12 +248,7 @@ public class HomeActivity extends BaseActivity {
             tvHistory.setClickable(true);
             tvHistory.setOnClickListener(v -> { FastClickCheckUtil.check(v); openHistory(); });
         }
-        // 高级导航居中 - 修复文字靠左
-        try {
-            if (mGridView!= null) {
-                mGridView.setGravity(android.view.Gravity.CENTER);
-            }
-        } catch (Exception ignore) {}
+        // 高级导航居中已在布局里通过item居中实现
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
         // 隐藏左下角系统设置按钮，收费版只用顶部一个设置
         try { View v = findViewById(getResources().getIdentifier("tvBottomSetting", "id", getPackageName())); if (v!=null) v.setVisibility(View.GONE); } catch (Exception ignore) {}
@@ -267,7 +263,7 @@ private void showPlayerSetting() {
             items.add("★ 自动选择最优解码 (" + getDeviceBestHint() + ")");
             items.add("播放器内核: " + getCurrentPlayerName());
             items.add("解码方式: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解"));
-            items.add("广告过滤: " + (Hawk.get(HawkConfig.PARSE_AD, true) ? "开启 ★" : "关闭"));
+            items.add("广告过滤: " + (Hawk.get("PARSE_AD_FILTER", true) ? "开启 ★" : "关闭"));
             items.add("---------- 高级设置 ----------");
             items.add("渲染方式: " + Hawk.get(HawkConfig.PLAY_RENDER, "TextureView"));
             items.add("搜索展示: " + Hawk.get("SEARCH_DISPLAY", "缩略图"));
@@ -288,8 +284,8 @@ private void showPlayerSetting() {
                     else if (pos == 1) showPlayerTypeSwitch();
                     else if (pos == 2) showDecodeSwitch();
                     else if (pos == 3) {
-                        boolean cur = Hawk.get(HawkConfig.PARSE_AD, true);
-                        Hawk.put(HawkConfig.PARSE_AD, !cur);
+                        boolean cur = Hawk.get("PARSE_AD_FILTER", true);
+                        Hawk.put("PARSE_AD_FILTER", !cur);
                         Toast.makeText(HomeActivity.this, !cur ? "广告过滤已开启" : "广告过滤已关闭", Toast.LENGTH_SHORT).show();
                     }
                     else if (pos == 5) showRenderSwitch();
@@ -598,3 +594,4 @@ private void showPlayerSetting() {
     private void refreshEmpty() { try { skipNextUpdate=true; showSuccess(); if (sortAdapter!= null) sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); if (tvName!= null) tvName.clearAnimation(); } catch (Exception ignore) {} }
     private void tvNameAnimation() { try { if (tvName == null) return; AlphaAnimation blinkAnimation = new AlphaAnimation(0.0f, 1.0f); blinkAnimation.setDuration(500); blinkAnimation.setStartOffset(20); blinkAnimation.setRepeatMode(Animation.REVERSE); blinkAnimation.setRepeatCount(Animation.INFINITE); tvName.startAnimation(blinkAnimation); } catch (Exception ignore) {} }
 }
+
