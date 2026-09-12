@@ -189,6 +189,12 @@ public class HomeActivity extends BaseActivity {
                 public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                     if (view!= null) {
                         try {
+                            MovieSort.SortData sortData = sortAdapter.getItem(position);
+                            // ===== 新增：电视直播，选中直接进直播 =====
+                            if (sortData!= null && "live".equals(sortData.id)) {
+                                jumpActivity(LivePlayActivity.class);
+                                return;
+                            }
                             HomeActivity.this.currentView = view;
                             HomeActivity.this.isDownOrUp = false;
                             HomeActivity.this.sortChange = true;
@@ -200,7 +206,6 @@ public class HomeActivity extends BaseActivity {
                                 textView.invalidate();
                             }
                             if (position == -1) { position = 0; if (HomeActivity.this.mGridView!= null) HomeActivity.this.mGridView.setSelection(0); }
-                            MovieSort.SortData sortData = sortAdapter.getItem(position);
                             if (null!= sortData && sortData.filters!= null &&!sortData.filters.isEmpty()) { showFilterIcon(sortData.filterSelectCount()); }
                             HomeActivity.this.sortFocusView = view;
                             HomeActivity.this.sortFocused = position;
@@ -210,18 +215,23 @@ public class HomeActivity extends BaseActivity {
                     }
                 }
                 @Override public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-                    // 修复：点分类只切换页面，不跳应用
                     if (itemView == null) return;
-                    if (currentSelected == position) {
-                        try {
+                    try {
+                        MovieSort.SortData sortData = sortAdapter.getItem(position);
+                        // ===== 新增：点电视直播直接进直播页 =====
+                        if (sortData!= null && "live".equals(sortData.id)) {
+                            jumpActivity(LivePlayActivity.class);
+                            return;
+                        }
+                        if (currentSelected == position) {
                             BaseLazyFragment baseLazyFragment = fragments.get(currentSelected);
                             if ((baseLazyFragment instanceof GridFragment) && sortAdapter.getItem(position).filters!= null &&!sortAdapter.getItem(position).filters.isEmpty()) {
                                 ((GridFragment) baseLazyFragment).showFilter();
                             } else if (baseLazyFragment instanceof UserFragment) {
                                 showSiteSwitch();
                             }
-                        } catch (Exception ignore) {}
-                    }
+                        }
+                    } catch (Exception ignore) {}
                 }
             });
             this.mGridView.setOnInBorderKeyEventListener(new TvRecyclerView.OnInBorderKeyEventListener() {
@@ -276,7 +286,6 @@ public class HomeActivity extends BaseActivity {
                 if (absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null && absXml.classes.sortList.size() > 0) {
                     sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.classes.sortList, true));
                 } else {
-                    // 接口没返回分类时，给默认分类，不会只有3个了
                     sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true));
                 }
                 initViewPager(absXml);
@@ -323,7 +332,10 @@ public class HomeActivity extends BaseActivity {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    if (data.id.equals("my0")) {
+                    if ("live".equals(data.id)) {
+                        // 直播用空的UserFragment占位，不会崩，点的时候已经跳转了
+                        fragments.add(UserFragment.newInstance(null));
+                    } else if (data.id.equals("my0")) {
                         try {
                             if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && absXml!= null && absXml.videoList!= null && absXml.videoList.size() > 0) { fragments.add(UserFragment.newInstance(absXml.videoList)); }
                             else { fragments.add(UserFragment.newInstance(null)); }
