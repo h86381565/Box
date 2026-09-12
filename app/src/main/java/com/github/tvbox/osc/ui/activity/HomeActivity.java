@@ -89,11 +89,11 @@ public class HomeActivity extends BaseActivity {
     private LinearLayout topLayout;
     private LinearLayout contentLayout;
     private TextView tvName;
-    private ImageView tvWifi;
-    private ImageView tvFind;
-    private ImageView tvStyle;
-    private ImageView tvDraw;
-    private ImageView tvMenu;
+    private View tvWifi;
+    private View tvFind;
+    private View tvStyle;
+    private View tvDraw;
+    private View tvMenu;
     private TextView tvDate;
     private TvRecyclerView mGridView;
     private NoScrollViewPager mViewPager;
@@ -232,7 +232,7 @@ public class HomeActivity extends BaseActivity {
         tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         tvWifi.setOnClickListener(view->{ try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
         tvFind.setOnClickListener(view->{ jumpActivity(SearchActivity.class); });
-        tvStyle.setOnClickListener(view->{ try { Hawk.put(HawkConfig.HOME_REC_STYLE, !Hawk.get(HawkConfig.HOME_REC_STYLE, false)); if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { UserFragment.tvHotListForGrid.setVisibility(View.VISIBLE); UserFragment.tvHotListForLine.setVisibility(View.GONE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_grid), Toast.LENGTH_SHORT).show(); tvStyle.setImageResource(R.drawable.hm_up_down); } else { UserFragment.tvHotListForGrid.setVisibility(View.GONE); UserFragment.tvHotListForLine.setVisibility(View.VISIBLE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_line), Toast.LENGTH_SHORT).show(); tvStyle.setImageResource(R.drawable.hm_left_right); } } catch (Exception ex) {} });
+        tvStyle.setOnClickListener(view->{ try { Hawk.put(HawkConfig.HOME_REC_STYLE, !Hawk.get(HawkConfig.HOME_REC_STYLE, false)); if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { UserFragment.tvHotListForGrid.setVisibility(View.VISIBLE); UserFragment.tvHotListForLine.setVisibility(View.GONE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_grid), Toast.LENGTH_SHORT).show(); try { if (tvStyle instanceof ImageView) ((ImageView)tvStyle).setImageResource(R.drawable.hm_up_down); } catch (Exception ignore) {} } else { UserFragment.tvHotListForGrid.setVisibility(View.GONE); UserFragment.tvHotListForLine.setVisibility(View.VISIBLE); Toast.makeText(HomeActivity.this, getString(R.string.hm_style_line), Toast.LENGTH_SHORT).show(); try { if (tvStyle instanceof ImageView) ((ImageView)tvStyle).setImageResource(R.drawable.hm_left_right); } catch (Exception ignore) {} } } catch (Exception ex) {} });
         tvDraw.setOnClickListener(view->{ jumpActivity(AppsActivity.class); });
         tvMenu.setOnClickListener(view->{ jumpActivity(SettingActivity.class); });
         tvMenu.setOnLongClickListener(view->{ startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", getPackageName(), null))); return true; });
@@ -261,12 +261,12 @@ public class HomeActivity extends BaseActivity {
         if (isNetworkAvailable()) {
             try {
                 ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-                if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_wifi)); }
-                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_mobile)); }
-                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_ETHERNET) { tvWifi.setImageDrawable(res.getDrawable(R.drawable.hm_lan)); }
+                if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI) { try { if (tvWifi instanceof android.widget.ImageView) ((android.widget.ImageView)tvWifi).setImageDrawable(res.getDrawable(R.drawable.hm_wifi)); } catch (Exception ignore) {} }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE) { try { if (tvWifi instanceof android.widget.ImageView) ((android.widget.ImageView)tvWifi).setImageDrawable(res.getDrawable(R.drawable.hm_mobile)); } catch (Exception ignore) {} }
+                else if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_ETHERNET) { try { if (tvWifi instanceof android.widget.ImageView) ((android.widget.ImageView)tvWifi).setImageDrawable(res.getDrawable(R.drawable.hm_lan)); } catch (Exception ignore) {} }
             } catch (Exception ignore) {}
         }
-        try { if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { tvStyle.setImageResource(R.drawable.hm_up_down); } else { tvStyle.setImageResource(R.drawable.hm_left_right); } } catch (Exception ignore) {}
+        try { if (tvStyle instanceof android.widget.ImageView) { if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) { ((android.widget.ImageView)tvStyle).setImageResource(R.drawable.hm_up_down); } else { ((android.widget.ImageView)tvStyle).setImageResource(R.drawable.hm_left_right); } } } catch (Exception ignore) {}
         mGridView.requestFocus();
         if (dataInitOk && jarInitOk) { sourceViewModel.getSort(ApiConfig.get().getHomeSourceBean().getKey()); try { if (Hawk.get(HawkConfig.HOME_DEFAULT_SHOW, false)) { jumpActivity(LivePlayActivity.class); } } catch (Exception ignore) {} return; }
         tvNameAnimation(); showLoading();
@@ -280,117 +280,4 @@ public class HomeActivity extends BaseActivity {
             }
             return;
         }
-        ApiConfig.get().loadConfig(useCacheConfig, new ApiConfig.LoadConfigCallback() {
-            TipDialog dialog = null;
-            @Override public void retry() { mHandler.post(() -> initData()); }
-            @Override public void success() { dataInitOk = true; if (ApiConfig.get().getSpider().isEmpty()) { jarInitOk = true; } mHandler.postDelayed(() -> initData(), 50); }
-            @Override public void error(String msg) {
-                if (msg.equalsIgnoreCase("-1")) { mHandler.post(() -> { dataInitOk = true; jarInitOk = true; initData(); }); return; }
-                mHandler.post(() -> {
-                    if (dialog == null) dialog = new TipDialog(HomeActivity.this, msg, getString(R.string.hm_retry), getString(R.string.hm_cancel), new TipDialog.OnListener() {
-                        @Override public void left() { mHandler.post(() -> { initData(); dialog.hide(); }); }
-                        @Override public void right() { dataInitOk = true; jarInitOk = true; mHandler.post(() -> { initData(); dialog.hide(); }); }
-                        @Override public void cancel() { dataInitOk = true; jarInitOk = true; mHandler.post(() -> { initData(); dialog.hide(); }); }
-                    });
-                    if (!dialog.isShowing()) dialog.show();
-                });
-            }
-        }, this);
-    }
-    private void initViewPager(AbsSortXml absXml) {
-        if (sortAdapter.getData().size() > 0) {
-            for (MovieSort.SortData data : sortAdapter.getData()) {
-                if (data.id.equals("my0")) {
-                    try {
-                        if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && absXml != null && absXml.videoList != null && absXml.videoList.size() > 0) { fragments.add(UserFragment.newInstance(absXml.videoList)); }
-                        else { fragments.add(UserFragment.newInstance(null)); }
-                    } catch (Exception e) { fragments.add(UserFragment.newInstance(null)); }
-                } else { fragments.add(GridFragment.newInstance(data)); }
-            }
-            pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
-            try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
-            mViewPager.setPageTransformer(true, new DefaultTransformer());
-            mViewPager.setAdapter(pageAdapter);
-            mViewPager.setCurrentItem(currentSelected, false);
-        }
-    }
-    @Override public void onBackPressed() {
-        if(isLoading()){ refreshEmpty(); return; }
-        try { if (HawkConfig.hotVodDelete) { HawkConfig.hotVodDelete = false; UserFragment.homeHotVodAdapter.notifyDataSetChanged(); return; } } catch (Exception ignore) {}
-        if (this.fragments.size() <= 0 || this.sortFocused >= this.fragments.size() || this.sortFocused < 0) { doExit(); return; }
-        BaseLazyFragment baseLazyFragment = this.fragments.get(this.sortFocused);
-        if (baseLazyFragment instanceof GridFragment) {
-            GridFragment grid = (GridFragment) baseLazyFragment;
-            if (grid.restoreView()) { return; }
-            if (this.sortFocusView != null && !this.sortFocusView.isFocused()) { this.sortFocusView.requestFocus(); }
-            else if (this.sortFocused != 0) { this.mGridView.setSelection(0); } else { doExit(); }
-        } else if (baseLazyFragment instanceof UserFragment && UserFragment.tvHotListForGrid.canScrollVertically(-1)) {
-            UserFragment.tvHotListForGrid.scrollToPosition(0); this.mGridView.setSelection(0);
-        } else { doExit(); }
-    }
-    private void doExit() {
-        if (System.currentTimeMillis() - mExitTime < 2000) {
-            AppManager.getInstance().finishAllActivity(); EventBus.getDefault().unregister(this); ControlManager.get().stopServer(); finish(); android.os.Process.killProcess(android.os.Process.myPid()); System.exit(0);
-        } else { mExitTime = System.currentTimeMillis(); Toast.makeText(mContext, getString(R.string.hm_exit), Toast.LENGTH_SHORT).show(); }
-    }
-    @Override protected void onResume() {
-        super.onResume();
-        SourceBean home = ApiConfig.get().getHomeSourceBean();
-        try {
-            if (Hawk.get(HawkConfig.HOME_SHOW_SOURCE, false)) { if (home != null && home.getName() != null && !home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); } } else { tvName.setText(R.string.app_name); }
-            if (Hawk.get(HawkConfig.HOME_SEARCH_POSITION, true)) { tvFind.setVisibility(View.VISIBLE); } else { tvFind.setVisibility(View.GONE); }
-            if (Hawk.get(HawkConfig.HOME_MENU_POSITION, true)) { tvMenu.setVisibility(View.VISIBLE); } else { tvMenu.setVisibility(View.GONE); }
-        } catch (Exception ignore) { tvName.setText(R.string.app_name); }
-        mHandler.post(mRunnable);
-    }
-    @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void refresh(RefreshEvent event) {
-        if (event.type == RefreshEvent.TYPE_PUSH_URL) {
-            if (ApiConfig.get().getSource("push_agent") != null) {
-                Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); HomeActivity.this.startActivity(newIntent);
-            }
-        }
-    }
-    private void showFilterIcon(int count) { boolean activated = count > 0; currentView.findViewById(R.id.tvFilter).setVisibility(View.VISIBLE); ImageView imgView = currentView.findViewById(R.id.tvFilter); imgView.setColorFilter(activated ? this.getThemeColor() : Color.WHITE); }
-    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused != currentSelected) { currentSelected = sortFocused; mViewPager.setCurrentItem(sortFocused, false); changeTop(sortFocused != 0); } } } };
-    @Override public boolean dispatchKeyEvent(KeyEvent event) { if (topHide < 0) return false; if (event.getAction() == KeyEvent.ACTION_DOWN) { if (event.getKeyCode() == KeyEvent.KEYCODE_MENU) { showSiteSwitch(); } } return super.dispatchKeyEvent(event); }
-    byte topHide = 0;
-    private void changeTop(boolean hide) {
-        ViewObj viewObj = new ViewObj(topLayout, (ViewGroup.MarginLayoutParams) topLayout.getLayoutParams());
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.addListener(new Animator.AnimatorListener() { @Override public void onAnimationStart(Animator animation) {} @Override public void onAnimationEnd(Animator animation) { topHide = (byte) (hide ? 1 : 0); } @Override public void onAnimationCancel(Animator animation) {} @Override public void onAnimationRepeat(Animator animation) {} });
-        if (hide && topHide == 0) {
-            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 20.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f))), ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f))), ObjectAnimator.ofFloat(this.topLayout, "alpha", 1.0f, 0.0f));
-            animatorSet.setDuration(250); animatorSet.start(); tvName.setFocusable(false); tvWifi.setFocusable(false); tvFind.setFocusable(false); tvStyle.setFocusable(false); tvDraw.setFocusable(false); tvMenu.setFocusable(false); return;
-        }
-        if (!hide && topHide == 1) {
-            animatorSet.playTogether(ObjectAnimator.ofObject(viewObj, "marginTop", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 0.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 20.0f))), ObjectAnimator.ofObject(viewObj, "height", new IntEvaluator(), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 1.0f)), Integer.valueOf(AutoSizeUtils.mm2px(this.mContext, 50.0f))), ObjectAnimator.ofFloat(this.topLayout, "alpha", 0.0f, 1.0f));
-            animatorSet.setDuration(250); animatorSet.start(); tvName.setFocusable(true); tvWifi.setFocusable(true); tvFind.setFocusable(true); tvStyle.setFocusable(true); tvDraw.setFocusable(true); tvMenu.setFocusable(true);
-        }
-    }
-    @Override protected void onDestroy() { super.onDestroy(); EventBus.getDefault().unregister(this); AppManager.getInstance().appExit(0); ControlManager.get().stopServer(); }
-    void showSiteSwitch() {
-        List<SourceBean> sites = new ArrayList<>();
-        for (SourceBean sb : ApiConfig.get().getSourceBeanList()) { if (sb.getHide() == 0) sites.add(sb); }
-        if (sites.size() > 0) {
-            SelectDialog<SourceBean> dialog = new SelectDialog<>(HomeActivity.this);
-            int spanCount = (int) Math.floor(sites.size() / 10); if (spanCount <= 1) spanCount = 1; if (spanCount >= 3) spanCount = 3;
-            TvRecyclerView tvRecyclerView = dialog.findViewById(R.id.list); tvRecyclerView.setLayoutManager(new V7GridLayoutManager(dialog.getContext(), spanCount));
-            ConstraintLayout cl_root = dialog.findViewById(R.id.cl_root); ViewGroup.LayoutParams clp = cl_root.getLayoutParams(); if (spanCount != 1) { clp.width = AutoSizeUtils.mm2px(dialog.getContext(), 400 + 260 * (spanCount - 1)); }
-            dialog.setTip(getString(R.string.dia_source));
-            dialog.setAdapter(tvRecyclerView, new SelectDialogAdapter.SelectDialogInterface<SourceBean>() {
-                @Override public void click(SourceBean value, int pos) { ApiConfig.get().setSourceBean(value); reloadHome(); }
-                @Override public String getDisplay(SourceBean val) { return val.getName(); }
-            }, new DiffUtil.ItemCallback<SourceBean>() {
-                @Override public boolean areItemsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) { return oldItem == newItem; }
-                @Override public boolean areContentsTheSame(@NonNull @NotNull SourceBean oldItem, @NonNull @NotNull SourceBean newItem) { return oldItem.getKey().equals(newItem.getKey()); }
-            }, sites, sites.indexOf(ApiConfig.get().getHomeSourceBean()));
-            dialog.setOnDismissListener(dialog1 -> {});
-            dialog.show();
-        }
-    }
-    void reloadHome() { Intent intent = new Intent(getApplicationContext(), HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); HomeActivity.this.startActivity(intent); }
-    private void refreshEmpty() { skipNextUpdate=true; showSuccess(); sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); tvName.clearAnimation(); }
-    private void tvNameAnimation() { AlphaAnimation blinkAnimation = new AlphaAnimation(0.0f, 1.0f); blinkAnimation.setDuration(500); blinkAnimation.setStartOffset(20); blinkAnimation.setRepeatMode(Animation.REVERSE); blinkAnimation.setRepeatCount(Animation.INFINITE); tvName.startAnimation(blinkAnimation); }
-}
+        ApiConfig.get().loadConfig(useCacheConfig, new Api
