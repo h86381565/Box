@@ -7,7 +7,7 @@
     android:clipChildren="false"
     android:clipToPadding="false"
     android:orientation="vertical"
-    android:background="@color/color_000000">
+    android:background="@android:color/black">
 
     <com.owen.tvrecyclerview.widget.TvRecyclerView
         android:id="@+id/mGridView"
