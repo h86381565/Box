@@ -241,7 +241,12 @@ public class HomeActivity extends BaseActivity {
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
         if (tvMenu!= null) tvMenu.setOnClickListener(v->{ jumpActivity(SettingActivity.class); });
-        if (tvDate!= null) tvDate.setOnClickListener(v->{ try { startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); } catch (Exception ignore) {} });
+        // 优化：日期改为纯文本，不可聚焦不可点击，不会跳到模拟器设置
+        if (tvDate!= null) {
+            tvDate.setFocusable(false);
+            tvDate.setClickable(false);
+            tvDate.setOnClickListener(null);
+        }
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
     }
 
