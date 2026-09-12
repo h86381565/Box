@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "=== 开始定制VIP影视 ==="
           sed -i 's/<string name="app_name">.*<\/string>/<string name="app_name">VIP影视<\/string>/g' app/src/main/res/values/strings.xml || true
-          API="https://ghfast.top/https://raw.githubusercontent.com/h86381565/test-TV/main/fantaiying.json"
+          API="https://cdn.jsdelivr.net/gh/h86381565/test-TV@main/fantaiying.json"
           sed -i "s|.*HawkConfig.API_URL.*|        putDefault(HawkConfig.API_URL, \"$API\");|g" app/src/main/java/com/github/tvbox/osc/base/App.java || true
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "=== 定制完成 ==="
