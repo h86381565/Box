@@ -223,7 +223,10 @@ public class HomeActivity extends BaseActivity {
             tvFind.setFocusable(true);
             tvFind.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
         }
-        if (tvWifi!= null) tvWifi.setOnClickListener(v -> { try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
+        if (tvWifi!= null) {
+            tvWifi.setFocusable(true);
+            tvWifi.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
+        }
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
