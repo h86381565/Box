@@ -87,6 +87,7 @@ public class HomeActivity extends BaseActivity {
     private View tvStyle;
     private View tvDraw;
     private View tvMenu;
+    private View tvPlayerSetting;
     private TextView tvDate;
     private TvRecyclerView mGridView;
     private NoScrollViewPager mViewPager;
@@ -141,6 +142,7 @@ public class HomeActivity extends BaseActivity {
         this.tvStyle = findViewById(R.id.tvStyle);
         this.tvDraw = findViewById(R.id.tvDrawer);
         this.tvMenu = findViewById(R.id.tvMenu);
+        try { int pid = getResources().getIdentifier("tvPlayerSetting", "id", getPackageName()); if (pid != 0) this.tvPlayerSetting = findViewById(pid); else this.tvPlayerSetting = findViewById(R.id.tvPlayerSetting); } catch (Exception e) { try { this.tvPlayerSetting = findViewById(R.id.tvPlayerSetting); } catch (Exception ignore) {} }
         this.tvDate = findViewById(R.id.tvDate);
         this.contentLayout = findViewById(R.id.contentLayout);
         this.mGridView = findViewById(R.id.mGridViewCategory);
@@ -228,10 +230,149 @@ public class HomeActivity extends BaseActivity {
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
         if (tvMenu!= null) tvMenu.setOnClickListener(v->{ jumpActivity(SettingActivity.class); });
-        if (tvDate!= null) tvDate.setOnClickListener(v->{ try { startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); } catch (Exception ignore) {} });
+        if (tvDate!= null) { tvDate.setFocusable(false); tvDate.setClickable(false); tvDate.setOnClickListener(null); }
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
     }
-    private boolean skipNextUpdate = false;
+
+    private void showPlayerSetting() {
+        try {
+            List<String> items = new ArrayList<>();
+            items.add("★ 自动选择最优解码 (推荐)");
+            items.add("播放器选择 (当前: " + getCurrentPlayerName() + ")");
+            items.add("解码方式 (当前: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解") + ")");
+            items.add("打开系统设置");
+            SelectDialog<String> dialog = new SelectDialog<>(this);
+            dialog.setTip("播放器设置 - " + getDeviceBestHint());
+            TvRecyclerView rv = dialog.findViewById(R.id.list);
+            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
+            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String value, int pos) {
+                    dialog.dismiss();
+                    if (pos == 0) autoSelectBestDecoder();
+                    else if (pos == 1) showPlayerTypeSwitch();
+                    else if (pos == 2) showDecodeSwitch();
+                    else if (pos == 3) jumpActivity(SettingActivity.class);
+                }
+                @Override public String getDisplay(String val) { return val; }
+            }, new DiffUtil.ItemCallback<String>() {
+                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+            }, items, -1);
+            dialog.show();
+        } catch (Exception ignore) {}
+    }
+
+    private void autoSelectBestDecoder() {
+        try {
+            boolean isLowRam = false; boolean is4K = false;
+            try {
+                android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+                if (am != null) isLowRam = am.isLowRamDevice();
+                android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+                is4K = dm.widthPixels >= 3840 || dm.heightPixels >= 2160;
+            } catch (Exception ignore) {}
+            int best; boolean soft; String reason;
+            if (is4K) { best = 2; soft = false; reason = "检测到4K，已设为 Exo+硬解"; }
+            else if (isLowRam || android.os.Build.VERSION.SDK_INT < 24) { best = 1; soft = true; reason = "老设备，已设为 IJK+软解"; }
+            else { best = 1; soft = false; reason = "已设为 IJK+硬解 平衡"; }
+            Hawk.put(HawkConfig.PLAY_TYPE, best);
+            Hawk.put("PLAY_USE_SOFT", soft);
+            Toast.makeText(this, reason, Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false);
+        }
+    }
+
+    private String getDeviceBestHint() {
+        try {
+            android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+            if (dm.widthPixels >= 3840) return "推荐: Exo硬解";
+            android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am != null && am.isLowRamDevice()) return "推荐: IJK软解";
+            return "推荐: IJK硬解";
+        } catch (Exception e) { return "智能推荐"; }
+    }
+
+    private String getCurrentPlayerName() {
+        try {
+            int type = Hawk.get(HawkConfig.PLAY_TYPE, 1);
+            String ext = Hawk.get("EXT_PLAY_TYPE", "");
+            if (!ext.isEmpty()) return ext;
+            if (type == 0) return "系统";
+            if (type == 1) return Hawk.get("PLAY_USE_SOFT", false) ? "IJK软解" : "IJK硬解";
+            if (type == 2) return Hawk.get("PLAY_USE_SOFT", false) ? "Exo软解" : "Exo硬解";
+            return "IJK硬解";
+        } catch (Exception e) { return "IJK硬解"; }
+    }
+
+    private void showPlayerTypeSwitch() {
+        try {
+            List<String> players = new ArrayList<>();
+            players.add("IJK硬解 - 平衡 ★");
+            players.add("IJK软解 - 兼容最强");
+            players.add("Exo硬解 - 4K最快 ★★");
+            players.add("Exo软解 - 高码率");
+            players.add("系统播放器");
+            players.add("VLC外置 - 解码最全");
+            players.add("MX外置 - 速度最快");
+            int cur = Hawk.get(HawkConfig.PLAY_TYPE, 1);
+            boolean isSoft = Hawk.get("PLAY_USE_SOFT", false);
+            int curIdx = 0;
+            if (cur == 1 && !isSoft) curIdx = 0; else if (cur == 1 && isSoft) curIdx = 1; else if (cur == 2 && !isSoft) curIdx = 2; else if (cur == 2 && isSoft) curIdx = 3; else if (cur == 0) curIdx = 4;
+            SelectDialog<String> dialog = new SelectDialog<>(this);
+            dialog.setTip("选择播放内核");
+            TvRecyclerView rv = dialog.findViewById(R.id.list);
+            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
+            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String value, int pos) {
+                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", false); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put("PLAY_USE_SOFT", true); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
+                    else if (pos == 5) { Hawk.put("EXT_PLAY_TYPE", "VLC"); }
+                    else if (pos == 6) { Hawk.put("EXT_PLAY_TYPE", "MX"); }
+                    Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_LONG).show();
+                    dialog.dismiss();
+                }
+                @Override public String getDisplay(String val) { return val; }
+            }, new DiffUtil.ItemCallback<String>() {
+                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+            }, players, curIdx);
+            dialog.show();
+        } catch (Exception ignore) {}
+    }
+
+    private void showDecodeSwitch() {
+        try {
+            List<String> decodes = new ArrayList<>();
+            decodes.add("硬解码 - 省电秒开 ★");
+            decodes.add("软解码 - 兼容");
+            decodes.add("自动切换 (推荐)");
+            int mode = Hawk.get("DECODE_MODE", 0);
+            SelectDialog<String> dialog = new SelectDialog<>(this);
+            dialog.setTip("解码方式");
+            TvRecyclerView rv = dialog.findViewById(R.id.list);
+            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
+            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String value, int pos) {
+                    if (pos == 0) Hawk.put("PLAY_USE_SOFT", false);
+                    else if (pos == 1) Hawk.put("PLAY_USE_SOFT", true);
+                    else if (pos == 2) { Hawk.put("PLAY_USE_SOFT", false); Hawk.put(HawkConfig.PLAY_TYPE, 2); }
+                    Toast.makeText(HomeActivity.this, "已切换: " + value, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                }
+                @Override public String getDisplay(String val) { return val; }
+            }, new DiffUtil.ItemCallback<String>() {
+                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
+            }, decodes, mode);
+            dialog.show();
+        } catch (Exception ignore) {}
+    }
+    private boolean skipNextUpdate
+ = false;
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
         sourceViewModel.sortResult.observe(this, absXml -> {
