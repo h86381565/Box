@@ -102,13 +102,10 @@ public class HomeActivity extends BaseActivity {
     private final Handler mHandler = new Handler();
     private long mExitTime = 0;
     private final Runnable mRunnable = new Runnable() {
-        @SuppressLint({"DefaultLocale", "SetTextI18n"})
-        @Override
-        public void run() {
+        @Override public void run() {
             if (tvDate!= null) {
                 Date date = new Date();
-                @SuppressLint("SimpleDateFormat")
-                SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.hm_date1) + " | " + getString(R.string.hm_date2));
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat timeFormat = new SimpleDateFormat(getString(R.string.hm_date1) + " | " + getString(R.string.hm_date2));
                 tvDate.setText(timeFormat.format(date));
             }
             mHandler.postDelayed(this, 1000);
@@ -179,7 +176,7 @@ public class HomeActivity extends BaseActivity {
                 public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                     if (view== null) return;
                     try {
-                        // 选中只记录，不跳转，解决左边点不动
+                        // 只记录，不跳转，解决左边点不动
                         HomeActivity.this.currentView = view;
                         HomeActivity.this.isDownOrUp = false;
                         HomeActivity.this.sortChange = true;
@@ -203,12 +200,11 @@ public class HomeActivity extends BaseActivity {
                     try {
                         MovieSort.SortData sortData = sortAdapter.getItem(position);
                         if (sortData== null) return;
-                        // 只有点击时才进直播，选中不跳
+                        // 只有点击才进直播
                         if ("live".equals(sortData.id)) {
                             jumpActivity(LivePlayActivity.class);
                             return;
                         }
-                        // 点击当前项，显示筛选或源切换，点其他项是切换右边点播区
                         if (currentSelected!= position) {
                             sortFocused = position;
                             mHandler.removeCallbacks(mDataRunnable);
@@ -224,55 +220,27 @@ public class HomeActivity extends BaseActivity {
                     } catch (Exception ignore) {}
                 }
             });
-            this.mGridView.setOnInBorderKeyEventListener((direction, view) -> {
-                try {
-                    if (direction == View.FOCUS_UP) {
-                        BaseLazyFragment b = fragments.get(sortFocused);
-                        if ((b instanceof GridFragment)) ((GridFragment) b).forceRefresh();
-                    }
-                    if (direction!= View.FOCUS_DOWN) return false;
-                    BaseLazyFragment b = fragments.get(sortFocused);
-                    if (!(b instanceof GridFragment)) return false;
-                    return!((GridFragment) b).isLoad();
-                } catch (Exception ignore) { return false; }
-            });
         }
-        // 修复搜索跳到模拟器设置
+        // 修复搜索跳模拟器设置
         if (tvFind!= null) {
             tvFind.setFocusable(true);
-            tvFind.setOnClickListener(v -> {
-                try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索页打开失败", Toast.LENGTH_SHORT).show(); }
-            });
+            tvFind.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
         }
         if (tvWifi!= null) tvWifi.setOnClickListener(v -> { try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
-        if (tvName!= null) tvName.setOnClickListener(v -> {
-            FastClickCheckUtil.check(v);
-            try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {}
-            Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show();
-        });
+        if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
-        if (tvStyle!= null) tvStyle.setOnClickListener(v->{ try {
-            Hawk.put(HawkConfig.HOME_REC_STYLE,!Hawk.get(HawkConfig.HOME_REC_STYLE, false));
-            Toast.makeText(HomeActivity.this, Hawk.get(HawkConfig.HOME_REC_STYLE, false)? "网格":"列表", Toast.LENGTH_SHORT).show();
-        } catch (Exception ex) {} });
         if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
         if (tvMenu!= null) tvMenu.setOnClickListener(v->{ jumpActivity(SettingActivity.class); });
         if (tvDate!= null) tvDate.setOnClickListener(v->{ try { startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); } catch (Exception ignore) {} });
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
     }
-    public static void homeRecf() { try { int homeRec = Hawk.get(HawkConfig.HOME_REC, -1); if (homeRec == 2) homeRec = -1; homeRec++; Hawk.put(HawkConfig.HOME_REC, homeRec); } catch (Exception ignore) {} }
-    public static boolean reHome(Context appContext) { Intent intent = new Intent(appContext, HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle b = new Bundle(); b.putBoolean("useCache", true); intent.putExtras(b); appContext.startActivity(intent); return true; }
     private boolean skipNextUpdate = false;
     private void initViewModel() {
         sourceViewModel = new ViewModelProvider(this).get(SourceViewModel.class);
         sourceViewModel.sortResult.observe(this, absXml -> {
             if (skipNextUpdate) { skipNextUpdate = false; return; }
             showSuccess();
-            if (absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null && absXml.classes.sortList.size() > 0) {
-                sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml.classes.sortList, true));
-            } else {
-                sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true));
-            }
+            sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null? absXml.classes.sortList : new ArrayList<>(), true));
             initViewPager(absXml);
             SourceBean home = ApiConfig.get().getHomeSourceBean();
             if (HomeShow && tvName!= null && home!= null && home.getName()!= null &&!home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); }
@@ -322,11 +290,7 @@ public class HomeActivity extends BaseActivity {
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
-                if (mViewPager!= null) {
-                    mViewPager.setPageTransformer(true, new DefaultTransformer());
-                    mViewPager.setAdapter(pageAdapter);
-                    mViewPager.setCurrentItem(currentSelected, false);
-                }
+                if (mViewPager!= null) { mViewPager.setPageTransformer(true, new DefaultTransformer()); mViewPager.setAdapter(pageAdapter); mViewPager.setCurrentItem(currentSelected, false); }
             }
         } catch (Exception ignore) {}
     }
@@ -349,18 +313,10 @@ public class HomeActivity extends BaseActivity {
     }
     @Override protected void onResume() { super.onResume(); mHandler.post(mRunnable); }
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
-    @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) {
-        if (event.type == RefreshEvent.TYPE_PUSH_URL) {
-            if (ApiConfig.get().getSource("push_agent")!= null) {
-                Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent);
-            }
-        }
-    }
+    @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
     private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
     private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
-    @Override public boolean dispatchKeyEvent(KeyEvent event) { if (topHide < 0) return false; if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
-    byte topHide = 0;
-    private void changeTop(boolean hide) {}
+    @Override public boolean dispatchKeyEvent(KeyEvent event) { if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
     @Override protected void onDestroy() { super.onDestroy(); try { EventBus.getDefault().unregister(this); } catch (Exception ignore) {} }
     void showSiteSwitch() {
         List<SourceBean> sites = new ArrayList<>();
