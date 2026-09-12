@@ -176,7 +176,6 @@ public class HomeActivity extends BaseActivity {
                 public void onItemSelected(TvRecyclerView tvRecyclerView, View view, int position) {
                     if (view== null) return;
                     try {
-                        // 只记录，不跳转，解决左边点不动
                         HomeActivity.this.currentView = view;
                         HomeActivity.this.isDownOrUp = false;
                         HomeActivity.this.sortChange = true;
@@ -200,7 +199,6 @@ public class HomeActivity extends BaseActivity {
                     try {
                         MovieSort.SortData sortData = sortAdapter.getItem(position);
                         if (sortData== null) return;
-                        // 只有点击才进直播
                         if ("live".equals(sortData.id)) {
                             jumpActivity(LivePlayActivity.class);
                             return;
@@ -221,7 +219,6 @@ public class HomeActivity extends BaseActivity {
                 }
             });
         }
-        // 修复搜索跳模拟器设置
         if (tvFind!= null) {
             tvFind.setFocusable(true);
             tvFind.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
@@ -337,7 +334,7 @@ public class HomeActivity extends BaseActivity {
             dialog.show();
         }
     }
-    void reloadHome() { Intent intent = new Intent(getApplicationContext(), HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); startActivity(intent); }
+    public void reloadHome() { Intent intent = new Intent(getApplicationContext(), HomeActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); Bundle bundle = new Bundle(); bundle.putBoolean("useCache", true); intent.putExtras(bundle); startActivity(intent); }
     private void refreshEmpty() { try { skipNextUpdate=true; showSuccess(); if (sortAdapter!= null) sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); if (tvName!= null) tvName.clearAnimation(); } catch (Exception ignore) {} }
     private void tvNameAnimation() { try { if (tvName == null) return; AlphaAnimation blinkAnimation = new AlphaAnimation(0.0f, 1.0f); blinkAnimation.setDuration(500); blinkAnimation.setStartOffset(20); blinkAnimation.setRepeatMode(Animation.REVERSE); blinkAnimation.setRepeatCount(Animation.INFINITE); tvName.startAnimation(blinkAnimation); } catch (Exception ignore) {} }
 }
