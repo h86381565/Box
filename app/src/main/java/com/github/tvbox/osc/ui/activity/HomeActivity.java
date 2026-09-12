@@ -88,6 +88,7 @@ public class HomeActivity extends BaseActivity {
     private View tvDraw;
     private View tvMenu;
     private View tvPlayerSetting;
+    private View tvHistory;
     private TextView tvDate;
     private TvRecyclerView mGridView;
     private NoScrollViewPager mViewPager;
@@ -143,6 +144,7 @@ public class HomeActivity extends BaseActivity {
         this.tvDraw = findViewById(R.id.tvDrawer);
         this.tvMenu = findViewById(R.id.tvMenu);
         try { int pid = getResources().getIdentifier("tvPlayerSetting", "id", getPackageName()); if (pid != 0) this.tvPlayerSetting = findViewById(pid); else this.tvPlayerSetting = findViewById(R.id.tvPlayerSetting); } catch (Exception e) { try { this.tvPlayerSetting = findViewById(R.id.tvPlayerSetting); } catch (Exception ignore) {} }
+        try { int hid = getResources().getIdentifier("tvHistory", "id", getPackageName()); if (hid != 0) this.tvHistory = findViewById(hid); else this.tvHistory = findViewById(R.id.tvHistory); } catch (Exception e) { try { this.tvHistory = findViewById(R.id.tvHistory); } catch (Exception ignore) {} }
         this.tvDate = findViewById(R.id.tvDate);
         this.contentLayout = findViewById(R.id.contentLayout);
         this.mGridView = findViewById(R.id.mGridViewCategory);
@@ -239,22 +241,42 @@ public class HomeActivity extends BaseActivity {
         // 长按系统设置也能调解码器，收费版方便调试
         if (tvMenu!= null) { tvMenu.setOnLongClickListener(v->{ showPlayerSetting(); return true; }); }
         if (tvDate!= null) { tvDate.setFocusable(false); tvDate.setClickable(false); tvDate.setFocusableInTouchMode(false); tvDate.setOnClickListener(null); }
+        // 历史按钮
+        if (tvHistory!= null) {
+            tvHistory.setFocusable(true);
+            tvHistory.setClickable(true);
+            tvHistory.setOnClickListener(v -> { FastClickCheckUtil.check(v); openHistory(); });
+        }
+        // 高级导航居中 - 修复文字靠左
+        try {
+            if (mGridView!= null) {
+                mGridView.setGravity(android.view.Gravity.CENTER);
+            }
+        } catch (Exception ignore) {}
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
+        // 隐藏左下角系统设置按钮，收费版只用顶部一个设置
+        try { View v = findViewById(getResources().getIdentifier("tvBottomSetting", "id", getPackageName())); if (v!=null) v.setVisibility(View.GONE); } catch (Exception ignore) {}
+        try { if (tvMenu!=null) tvMenu.setVisibility(View.GONE); } catch (Exception ignore) {}
+        try { if (tvDraw!=null) tvDraw.setVisibility(View.GONE); } catch (Exception ignore) {}
     }
 
 
-    private void showPlayerSetting() {
+private void showPlayerSetting() {
         try {
             List<String> items = new ArrayList<>();
-            items.add("★ 自动选择最优解码 (推荐) - " + getDeviceBestHint());
+            items.add("★ 自动选择最优解码 (" + getDeviceBestHint() + ")");
             items.add("播放器内核: " + getCurrentPlayerName());
-            items.add("解码方式: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解") + " (点击切换)");
-            items.add("---------- 系统功能 ----------");
+            items.add("解码方式: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解"));
+            items.add("广告过滤: " + (Hawk.get(HawkConfig.PARSE_AD, true) ? "开启 ★" : "关闭"));
+            items.add("---------- 高级设置 ----------");
+            items.add("渲染方式: " + Hawk.get(HawkConfig.PLAY_RENDER, "TextureView"));
+            items.add("搜索展示: " + Hawk.get("SEARCH_DISPLAY", "缩略图"));
+            items.add("嗅探Webview: " + Hawk.get("SNIFF_WEBVIEW", "系统自带"));
+            items.add("安全DNS: " + (Hawk.get("SECURE_DNS", false) ? "开启" : "关闭"));
             items.add("切换线路");
-            items.add("搜索影视");
             items.add("清理缓存");
             items.add("应用管理");
-            items.add("系统设置");
+            items.add("观看历史");
             SelectDialog<String> dialog = new SelectDialog<>(this);
             dialog.setTip("ULTRA BOX PRO 设置");
             TvRecyclerView rv = dialog.findViewById(R.id.list);
@@ -265,14 +287,26 @@ public class HomeActivity extends BaseActivity {
                     if (pos == 0) autoSelectBestDecoder();
                     else if (pos == 1) showPlayerTypeSwitch();
                     else if (pos == 2) showDecodeSwitch();
-                    else if (pos == 4) showSiteSwitch();
-                    else if (pos == 5) { try { jumpActivity(SearchActivity.class); } catch (Exception e) {} }
-                    else if (pos == 6) { 
+                    else if (pos == 3) {
+                        boolean cur = Hawk.get(HawkConfig.PARSE_AD, true);
+                        Hawk.put(HawkConfig.PARSE_AD, !cur);
+                        Toast.makeText(HomeActivity.this, !cur ? "广告过滤已开启" : "广告过滤已关闭", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 5) showRenderSwitch();
+                    else if (pos == 6) showSearchDisplaySwitch();
+                    else if (pos == 7) showSniffSwitch();
+                    else if (pos == 8) {
+                        boolean cur = Hawk.get("SECURE_DNS", false);
+                        Hawk.put("SECURE_DNS", !cur);
+                        Toast.makeText(HomeActivity.this, "安全DNS: " + (!cur ? "开启" : "关闭"), Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 9) showSiteSwitch();
+                    else if (pos == 10) {
                         try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {}
                         Toast.makeText(HomeActivity.this, "缓存已清理", Toast.LENGTH_SHORT).show();
                     }
-                    else if (pos == 7) { try { jumpActivity(AppsActivity.class); } catch (Exception e) {} }
-                    else if (pos == 8) jumpActivity(SettingActivity.class);
+                    else if (pos == 11) { try { jumpActivity(AppsActivity.class); } catch (Exception e) {} }
+                    else if (pos == 12) { openHistory(); }
                 }
                 @Override public String getDisplay(String val) { return val; }
             }, new DiffUtil.ItemCallback<String>() {
@@ -281,6 +315,66 @@ public class HomeActivity extends BaseActivity {
             }, items, -1);
             dialog.show();
         } catch (Exception ignore) {}
+    }
+
+    private void openHistory() {
+        try {
+            // 跳转到历史页面 - 复用UserFragment的my0
+            if (sortAdapter != null) {
+                for (int i=0;i<sortAdapter.getData().size();i++) {
+                    if ("my0".equals(sortAdapter.getData().get(i).id)) {
+                        sortFocused = i;
+                        mHandler.removeCallbacks(mDataRunnable);
+                        mHandler.post(mDataRunnable);
+                        Toast.makeText(this, "已切换到观看历史", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+            // 如果没找到my0，直接打开搜索历史或提示
+            Toast.makeText(this, "观看历史在 我的 页面", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "打开历史失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showRenderSwitch() {
+        try {
+            List<String> list = new ArrayList<>(); list.add("TextureView"); list.add("SurfaceView");
+            int cur = "SurfaceView".equals(Hawk.get(HawkConfig.PLAY_RENDER, "TextureView")) ? 1 : 0;
+            SelectDialog<String> d = new SelectDialog<>(this); d.setTip("渲染方式");
+            TvRecyclerView rv = d.findViewById(R.id.list); if (rv!=null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(),1,false));
+            d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String v,int p){ Hawk.put(HawkConfig.PLAY_RENDER, v); Toast.makeText(HomeActivity.this,"已切换: "+v,Toast.LENGTH_SHORT).show(); d.dismiss();}
+                @Override public String getDisplay(String val){return val;}
+            }, new DiffUtil.ItemCallback<String>(){@Override public boolean areItemsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);} @Override public boolean areContentsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);}}, list, cur); d.show();
+        } catch (Exception ignore){}
+    }
+
+    private void showSearchDisplaySwitch() {
+        try {
+            List<String> list = new ArrayList<>(); list.add("缩略图"); list.add("列表");
+            String curStr = Hawk.get("SEARCH_DISPLAY", "缩略图"); int cur = "列表".equals(curStr) ? 1 : 0;
+            SelectDialog<String> d = new SelectDialog<>(this); d.setTip("搜索展示");
+            TvRecyclerView rv = d.findViewById(R.id.list); if (rv!=null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(),1,false));
+            d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String v,int p){ Hawk.put("SEARCH_DISPLAY", v); Toast.makeText(HomeActivity.this,"已切换: "+v,Toast.LENGTH_SHORT).show(); d.dismiss();}
+                @Override public String getDisplay(String val){return val;}
+            }, new DiffUtil.ItemCallback<String>(){@Override public boolean areItemsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);} @Override public boolean areContentsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);}}, list, cur); d.show();
+        } catch (Exception ignore){}
+    }
+
+    private void showSniffSwitch() {
+        try {
+            List<String> list = new ArrayList<>(); list.add("系统自带"); list.add("XWalk");
+            String curStr = Hawk.get("SNIFF_WEBVIEW", "系统自带"); int cur = "XWalk".equals(curStr) ? 1 : 0;
+            SelectDialog<String> d = new SelectDialog<>(this); d.setTip("嗅探Webview");
+            TvRecyclerView rv = d.findViewById(R.id.list); if (rv!=null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(),1,false));
+            d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
+                @Override public void click(String v,int p){ Hawk.put("SNIFF_WEBVIEW", v); Toast.makeText(HomeActivity.this,"已切换: "+v,Toast.LENGTH_SHORT).show(); d.dismiss();}
+                @Override public String getDisplay(String val){return val;}
+            }, new DiffUtil.ItemCallback<String>(){@Override public boolean areItemsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);} @Override public boolean areContentsTheSame(@NonNull String a,@NonNull String b){return a.equals(b);}}, list, cur); d.show();
+        } catch (Exception ignore){}
     }
 
 
