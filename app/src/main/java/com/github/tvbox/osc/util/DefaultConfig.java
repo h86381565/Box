@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
 import com.github.tvbox.osc.base.App;
 import com.github.tvbox.osc.bean.MovieSort;
@@ -21,7 +20,6 @@ import com.hjq.permissions.Permission;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -30,57 +28,26 @@ public class DefaultConfig {
 
     public static List<MovieSort.SortData> adjustSort(String sourceKey, List<MovieSort.SortData> list, boolean withMy) {
         List<MovieSort.SortData> data = new ArrayList<>();
-        if (sourceKey!= null) {
-            try {
-                SourceBean sb = ApiConfig.get().getSource(sourceKey);
-                if (sb!= null) {
-                    ArrayList<String> categories = sb.getCategories();
-                    if (categories!= null &&!categories.isEmpty()) {
-                        for (String cate : categories) {
-                            for (MovieSort.SortData sortData : list) {
-                                if (sortData.name.equals(cate)) {
-                                    if (sortData.filters == null) sortData.filters = new ArrayList<>();
-                                    data.add(sortData);
-                                }
-                            }
-                        }
-                    } else {
-                        for (MovieSort.SortData sortData : list) {
-                            if (sortData.filters == null) sortData.filters = new ArrayList<>();
-                            data.add(sortData);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                for (MovieSort.SortData sortData : list) {
-                    if (sortData.filters == null) sortData.filters = new ArrayList<>();
-                    data.add(sortData);
-                }
-            }
+        // 暴力写死，不读接口，左边永远8个
+        String[][] defs = {
+                {"movie","电影"},
+                {"tv","电视剧"},
+                {"variety","综艺"},
+                {"anime","动漫"},
+                {"short","短视频"},
+                {"live","电视直播"},
+                {"comic","少儿"}
+        };
+        for (String[] d : defs) {
+            MovieSort.SortData sd = new MovieSort.SortData();
+            sd.id = d[0];
+            sd.name = d[1];
+            sd.filters = new ArrayList<>();
+            data.add(sd);
         }
-        // ===== 最终版：左边显示8个，右边是点播区 =====
-        if (data.size() <= 3) {
-            data.clear();
-            String[][] defs = {{"movie","电影"},{"tv","电视剧"},{"variety","综艺"},{"anime","动漫"},{"short","短视频"},{"live","电视直播"},{"comic","少儿"}};
-            for (String[] d : defs) {
-                MovieSort.SortData sd = new MovieSort.SortData();
-                sd.id = d[0];
-                sd.name = d[1];
-                sd.filters = new ArrayList<>();
-                data.add(sd);
-            }
-        } else {
-            boolean hasLive = false;
-            for (MovieSort.SortData d : data) if ("live".equals(d.id)) hasLive = true;
-            if (!hasLive) {
-                MovieSort.SortData live = new MovieSort.SortData();
-                live.id = "live";
-                live.name = "电视直播";
-                live.filters = new ArrayList<>();
-                data.add(live);
-            }
+        if (withMy) {
+            data.add(0, new MovieSort.SortData("my0", HomeActivity.getRes().getString(com.github.tvbox.osc.R.string.app_home)));
         }
-        if (withMy) data.add(0, new MovieSort.SortData("my0", HomeActivity.getRes().getString(R.string.app_home)));
         return data;
     }
 
