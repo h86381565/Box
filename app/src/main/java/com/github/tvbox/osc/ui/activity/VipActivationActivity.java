@@ -1,4 +1,3 @@
-
 package com.github.tvbox.osc.ui.activity;
 
 import android.app.Activity;
@@ -21,17 +20,15 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class VipActivationActivity extends Activity {
 
-    // 公钥已内置，支持PEM或纯Base64，你网页生成器用的就是这对密钥
     private static final String PUBLIC_KEY_B64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCg/N4N6eBkATND5DUWTeWWVKgNWCvjALAZliIVGR39V6Ce07+nRrWzr3/zxV6VT8qejyGxad+bKZdBusMDxm20n2xVzjyC3xGzbE+B1Ew+RWJuEdmBPkaIEhQKVXzLPzm+Gwba7CBwgGr163VmXQ0mWgB5j88+fVCTfOScXt1MBQIDAQAB";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         SharedPreferences sp = getSharedPreferences("vip", MODE_PRIVATE);
         long savedExpire = sp.getLong("expire", 0);
         boolean isVip = sp.getBoolean("isVip", false);
-        // 如果已激活且没过期，直接进主页
         if (isVip && savedExpire > System.currentTimeMillis()/1000) {
             startActivity(new Intent(this, HomeActivity.class));
             finish();
@@ -88,7 +85,7 @@ public class VipActivationActivity extends Activity {
         root.addView(err);
 
         btn.setOnClickListener(v -> {
-            String code = et.getText().toString().trim();
+            String code = et.getText().toString();
             long expire = verifyAndGetExpire(code, deviceId, err);
             if (expire > 0) {
                 sp.edit().putBoolean("isVip", true).putLong("expire", expire).apply();
@@ -101,42 +98,62 @@ public class VipActivationActivity extends Activity {
         setContentView(root);
     }
 
+    // 修复版：去空格、去横杠、兼容两种签名数据
     private long verifyAndGetExpire(String code, String currentDeviceId, TextView errView) {
         try {
-            if (code.isEmpty()) { errView.setText("请输入激活码"); return 0; }
+            // 1. 激活码去所有空白，你截图那种换行必删
+            String cleanCode = code.replaceAll("\\s", "").trim();
+            if (cleanCode.isEmpty()) { errView.setText("请输入激活码"); return 0; }
+
             String decoded;
             try {
-                decoded = new String(Base64.decode(code, Base64.DEFAULT), "UTF-8");
+                decoded = new String(Base64.decode(cleanCode, Base64.DEFAULT), "UTF-8");
             } catch(Exception e) {
-                decoded = new String(Base64.decode(code, Base64.URL_SAFE), "UTF-8");
+                decoded = new String(Base64.decode(cleanCode, Base64.URL_SAFE | Base64.NO_WRAP), "UTF-8");
             }
             String[] parts = decoded.split("\\|");
-            if (parts.length != 3) { errView.setText("激活码格式错误，请复制完整"); return 0; }
-            long expire = Long.parseLong(parts[0].trim());
-            String deviceCode = parts[1].trim();
-            String sigB64 = parts[2].trim();
+            if (parts.length!= 3) { errView.setText("激活码格式错误，请复制完整，当前分割出" + parts.length + "段"); return 0; }
 
-            if (!deviceCode.equalsIgnoreCase(currentDeviceId)) {
-                errView.setText("设备码不匹配，此码不是给这台机器的");
+            long expire = Long.parseLong(parts[0].trim());
+            String deviceCodeInCode = parts[1].trim();
+            String sigB64 = parts[2].trim().replaceAll("\\s","");
+
+            // 2. 设备码归一化对比：都去横杠转大写
+            String normCurrent = currentDeviceId.replace("-", "").replace(" ", "").toUpperCase();
+            String normInCode = deviceCodeInCode.replace("-", "").replace(" ", "").toUpperCase();
+
+            if (!normInCode.equals(normCurrent)) {
+                errView.setText("设备码不匹配\n本机:" + currentDeviceId + "\n激活码内:" + deviceCodeInCode);
                 return 0;
             }
             if (System.currentTimeMillis() / 1000 > expire) {
                 errView.setText("激活码已过期");
                 return 0;
             }
-            
-            String data = expire + "|" + deviceCode;
-            byte[] sigBytes = Base64.decode(sigB64, Base64.DEFAULT);
+
+            // 3. 签名验证，兼容带横杠和不带横杠两种生成方式
             PublicKey pubKey = getPublicKey();
-            Signature sig = Signature.getInstance("SHA256withRSA");
-            sig.initVerify(pubKey);
-            sig.update(data.getBytes("UTF-8"));
-            if (sig.verify(sigBytes)) {
-                return expire;
-            } else {
-                errView.setText("签名验证失败，激活码无效");
-                return 0;
+            byte[] sigBytes = Base64.decode(sigB64, Base64.DEFAULT);
+
+            String[] tryDatas = new String[]{
+                expire + "|" + deviceCodeInCode, // 按码里原样验
+                expire + "|" + normInCode, // 按去横杠大写验
+                expire + "|" + currentDeviceId // 按本机原样验
+            };
+
+            for (String data : tryDatas) {
+                try {
+                    Signature sig = Signature.getInstance("SHA256withRSA");
+                    sig.initVerify(pubKey);
+                    sig.update(data.getBytes("UTF-8"));
+                    if (sig.verify(sigBytes)) {
+                        return expire;
+                    }
+                } catch (Exception ignore) {}
             }
+
+            errView.setText("签名验证失败，激活码无效");
+            return 0;
         } catch (Exception e) {
             e.printStackTrace();
             errView.setText("验证出错: " + e.getMessage());
@@ -146,8 +163,8 @@ public class VipActivationActivity extends Activity {
 
     private PublicKey getPublicKey() throws Exception {
         String raw = PUBLIC_KEY_B64.replace("-----BEGIN PUBLIC KEY-----", "")
-                 .replace("-----END PUBLIC KEY-----", "")
-                 .replaceAll("\\s", "");
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
         byte[] keyBytes = Base64.decode(raw, Base64.DEFAULT);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
