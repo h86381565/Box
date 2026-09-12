@@ -5,39 +5,109 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 左侧边栏 220dp 图2 PRO样式 -->
-    <LinearLayout android:orientation="vertical" android:background="#12121E" android:padding="14dp" android:layout_width="220dp" android:layout_height="match_parent">
-        <TextView android:text="VIP影库 ULTRA BOX PRO" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="13sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        <LinearLayout android:orientation="vertical" android:background="#1F1D15" android:padding="12dp" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <TextView android:text="⭐ 超级VIP PRO" android:textColor="#FBBF24" android:textSize="11sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvVipExpire" android:text="至 2027-09-11 · 无限观影" android:textColor="#9CA3AF" android:textSize="8sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <!-- 左侧边栏 220dp 图2 PRO样式 - 这里才是真正的主页导航 -->
+    <LinearLayout 
+        android:orientation="vertical" 
+        android:background="#12121E" 
+        android:padding="14dp" 
+        android:layout_width="220dp" 
+        android:layout_height="match_parent">
+
+        <TextView 
+            android:id="@+id/tvName"
+            android:text="VIP影库 ULTRA BOX PRO" 
+            android:textColor="#FFFFFF" 
+            android:textStyle="bold" 
+            android:textSize="13sp" 
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"/>
+
+        <LinearLayout 
+            android:orientation="vertical" 
+            android:background="#1F1D15" 
+            android:padding="12dp" 
+            android:layout_marginTop="18dp" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content">
+            <TextView 
+                android:text="⭐ 超级VIP PRO" 
+                android:textColor="#FBBF24" 
+                android:textSize="11sp" 
+                android:textStyle="bold" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"/>
+            <TextView 
+                android:id="@+id/tvVipExpire" 
+                android:text="至 2027-09-11 · 无限观影" 
+                android:textColor="#9CA3AF" 
+                android:textSize="8sp" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"/>
         </LinearLayout>
-        <TextView android:id="@+id/tvMenu" android:text="● 首页推荐" android:textColor="#FFFFFF" android:background="#2A2A40" android:padding="12dp" android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <TextView android:id="@+id/tvDrawer" android:text="🎞 电影" android:textColor="#6B7280" android:padding="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <TextView android:text="📺 电视剧" android:textColor="#6B7280" android:padding="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-    </LinearLayout>
 
-    <!-- 主内容 -->
-    <LinearLayout android:id="@+id/contentLayout" android:orientation="vertical" android:padding="18dp" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent">
-        <!-- 顶栏 - 保留原来所有ID -->
-        <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-            <TextView android:id="@+id/tvWifi" android:text="🔍 搜索" android:textColor="#6B7280" android:background="#1A1A2E" android:padding="12dp" android:layout_weight="1" android:layout_width="0dp" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvFind" android:text="发现" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvStyle" android:text="风格" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvDate" android:text="2027-09-11" android:textColor="#6B7280" android:background="#1A1A2E" android:padding="10dp" android:layout_marginStart="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <!-- Banner -->
-        <TextView android:text="沙丘：第二部 4K HDR · 为你推荐 · 遥控器方向键试试焦点" android:textColor="#FFFFFF" android:background="#1A1A2E" android:padding="24dp" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="120dp"/>
-
-        <!-- 保留关键网格ID，HomeActivity就是找它 -->
+        <!-- 真正的8个分类导航，HomeActivity会填充这里 -->
         <com.owen.tvrecyclerview.widget.TvRecyclerView
             android:id="@+id/mGridViewCategory"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="18dp"
             android:clipChildren="false"
             android:clipToPadding="false" />
+
+        <!-- 保留ID兼容，不显示 -->
+        <TextView android:id="@+id/tvMenu" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
+        <TextView android:id="@+id/tvDrawer" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
+        <TextView android:id="@+id/tvStyle" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
+    </LinearLayout>
+
+    <!-- 右边主内容 -->
+    <LinearLayout 
+        android:id="@+id/contentLayout" 
+        android:orientation="vertical" 
+        android:padding="18dp" 
+        android:layout_width="0dp" 
+        android:layout_weight="1" 
+        android:layout_height="match_parent">
+
+        <!-- 顶栏 - 保留原来所有ID -->
+        <LinearLayout 
+            android:id="@+id/topLayout"
+            android:orientation="horizontal" 
+            android:layout_width="match_parent" 
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <TextView 
+                android:id="@+id/tvWifi" 
+                android:text="🔍 搜索" 
+                android:textColor="#6B7280" 
+                android:background="#1A1A2E" 
+                android:padding="12dp" 
+                android:layout_weight="1" 
+                android:layout_width="0dp" 
+                android:layout_height="wrap_content"/>
+
+            <TextView android:id="@+id/tvFind" android:text="发现" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+            <TextView 
+                android:id="@+id/tvDate" 
+                android:text="09月12日 | 周六 13:13" 
+                android:textColor="#6B7280" 
+                android:background="#1A1A2E" 
+                android:padding="10dp" 
+                android:layout_marginStart="12dp" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- 右边点播墙，HomeActivity的ViewPager -->
+        <com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager
+            android:id="@+id/mViewPager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/black" />
     </LinearLayout>
 </LinearLayout>
