@@ -1,3 +1,4 @@
+
 package com.github.tvbox.osc.ui.activity;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -87,7 +88,6 @@ public class HomeActivity extends BaseActivity {
     private View tvStyle;
     private View tvDraw;
     private View tvMenu;
-    private View tvPlayerSetting; // 新增 播放器设置按钮
     private TextView tvDate;
     private TvRecyclerView mGridView;
     private NoScrollViewPager mViewPager;
@@ -143,7 +143,6 @@ public class HomeActivity extends BaseActivity {
         this.tvDraw = findViewById(R.id.tvDrawer);
         this.tvMenu = findViewById(R.id.tvMenu);
         this.tvDate = findViewById(R.id.tvDate);
-        this.tvPlayerSetting = findViewById(R.id.tvPlayerSetting);
         this.contentLayout = findViewById(R.id.contentLayout);
         this.mGridView = findViewById(R.id.mGridViewCategory);
         this.mViewPager = findViewById(R.id.mViewPager);
@@ -225,214 +224,13 @@ public class HomeActivity extends BaseActivity {
             tvFind.setFocusable(true);
             tvFind.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
         }
-        if (tvWifi!= null) {
-            tvWifi.setFocusable(true);
-            tvWifi.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
-        }
-        // 新增：播放器设置按钮
-        if (tvPlayerSetting!= null) {
-            tvPlayerSetting.setFocusable(true);
-            tvPlayerSetting.setOnClickListener(v -> {
-                FastClickCheckUtil.check(v);
-                showPlayerSetting();
-            });
-        }
+        if (tvWifi!= null) tvWifi.setOnClickListener(v -> { try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
         if (tvMenu!= null) tvMenu.setOnClickListener(v->{ jumpActivity(SettingActivity.class); });
-        // 优化：日期改为纯文本，不可聚焦不可点击，不会跳到模拟器设置
-        if (tvDate!= null) {
-            tvDate.setFocusable(false);
-            tvDate.setClickable(false);
-            tvDate.setOnClickListener(null);
-        }
+        if (tvDate!= null) tvDate.setOnClickListener(v->{ try { startActivity(new Intent(Settings.ACTION_DATE_SETTINGS)); } catch (Exception ignore) {} });
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
-    }
-
-    // 新增：播放器功能选项弹窗 + 自动最优
-    private void showPlayerSetting() {
-        try {
-            List<String> items = new ArrayList<>();
-            items.add("★ 自动选择最优解码 (推荐)");
-            items.add("播放器选择 (当前: " + getCurrentPlayerName() + ")");
-            items.add("解码方式 (当前: " + (Hawk.get(HawkConfig.PLAY_USE_SOFT, false) ? "软解" : "硬解") + ")");
-            items.add("倍速/比例设置");
-            items.add("打开系统设置");
-            SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("播放器设置 - " + getDeviceBestHint());
-            TvRecyclerView rv = dialog.findViewById(R.id.list);
-            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
-            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
-                @Override public void click(String value, int pos) {
-                    dialog.dismiss();
-                    if (pos == 0) autoSelectBestDecoder();
-                    else if (pos == 1) showPlayerTypeSwitch();
-                    else if (pos == 2) showDecodeSwitch();
-                    else if (pos == 3) Toast.makeText(HomeActivity.this, "在播放页按菜单键可调倍速比例", Toast.LENGTH_SHORT).show();
-                    else if (pos == 4) jumpActivity(SettingActivity.class);
-                }
-                @Override public String getDisplay(String val) { return val; }
-            }, new DiffUtil.ItemCallback<String>() {
-                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-            }, items, -1);
-            dialog.show();
-        } catch (Exception ignore) {}
-    }
-
-    // 自动选择最优解码器核心逻辑
-    private void autoSelectBestDecoder() {
-        try {
-            // 判断设备性能
-            boolean isLowRam = false;
-            boolean isAndroidTV = false;
-            boolean is4KDevice = false;
-            try {
-                android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-                if (am != null) isLowRam = am.isLowRamDevice();
-                android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
-                is4KDevice = dm.widthPixels >= 3840 || dm.heightPixels >= 2160;
-                isAndroidTV = getPackageManager().hasSystemFeature("android.software.leanback");
-            } catch (Exception ignore) {}
-
-            int bestPlayer;
-            boolean useSoft;
-            String reason;
-
-            if (is4KDevice) {
-                // 4K电视 / 投影：Exo + 硬解 最流畅
-                bestPlayer = 2; // Exo
-                useSoft = false;
-                reason = "检测到4K屏幕，已设为 Exo+硬解 最流畅";
-            } else if (isLowRam || android.os.Build.VERSION.SDK_INT < 24) {
-                // 老盒子 / 低内存：IJK + 软解 兼容最好
-                bestPlayer = 1; // IJK
-                useSoft = true;
-                reason = "检测到老设备/低内存，已设为 IJK+软解 兼容最强";
-            } else if (isAndroidTV) {
-                // 普通安卓电视盒：IJK + 硬解 平衡
-                bestPlayer = 1;
-                useSoft = false;
-                reason = "安卓电视盒，已设为 IJK+硬解 平衡省电";
-            } else {
-                // 手机/平板
-                bestPlayer = 2;
-                useSoft = false;
-                reason = "检测到高性能设备，已设为 Exo+硬解";
-            }
-
-            Hawk.put(HawkConfig.PLAY_TYPE, bestPlayer);
-            Hawk.put(HawkConfig.PLAY_USE_SOFT, useSoft);
-            Toast.makeText(this, reason, Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "已自动设为 IJK硬解通用模式", Toast.LENGTH_SHORT).show();
-            Hawk.put(HawkConfig.PLAY_TYPE, 1);
-            Hawk.put(HawkConfig.PLAY_USE_SOFT, false);
-        }
-    }
-
-    private String getDeviceBestHint() {
-        try {
-            android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
-            if (dm.widthPixels >= 3840) return "推荐: Exo硬解";
-            android.app.ActivityManager am = (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null && am.isLowRamDevice()) return "推荐: IJK软解";
-            return "推荐: IJK硬解";
-        } catch (Exception e) { return "智能推荐"; }
-    }
-
-    private String getCurrentPlayerName() {
-        try {
-            int type = Hawk.get(HawkConfig.PLAY_TYPE, 1);
-            String ext = Hawk.get("EXT_PLAY_TYPE", "");
-            if (!ext.isEmpty()) return ext;
-            if (type == 0) return "系统";
-            if (type == 1) return "IJK-硬解";
-            if (type == 2) return "Exo-硬解";
-            if (type == 10) return "IJK-软解";
-            if (type == 11) return "Exo-软解";
-            return "IJK-硬解";
-        } catch (Exception e) { return "IJK-硬解"; }
-    }
-
-    private void showPlayerTypeSwitch() {
-        try {
-            List<String> players = new ArrayList<>();
-            players.add("IJK硬解 - 默认最平衡 ★");
-            players.add("IJK软解 - 老片/生僻格式兼容最强");
-            players.add("Exo硬解 - 4K/H265秒开最快 ★★");
-            players.add("Exo软解 - 高码率不卡");
-            players.add("系统播放器 - 调用系统自带");
-            players.add("VLC外置 - 解码最全 (需安装VLC)");
-            players.add("MX外置 - 速度最快 (需安装MX Player)");
-            players.add("KODI外置 - 蓝光原盘");
-
-            int cur = Hawk.get(HawkConfig.PLAY_TYPE, 1);
-            boolean isSoft = Hawk.get(HawkConfig.PLAY_USE_SOFT, false);
-            int curIdx = 0;
-            if (cur == 1 && !isSoft) curIdx = 0;
-            else if (cur == 1 && isSoft) curIdx = 1;
-            else if (cur == 2 && !isSoft) curIdx = 2;
-            else if (cur == 2 && isSoft) curIdx = 3;
-            else if (cur == 0) curIdx = 4;
-
-            SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("选择播放内核 - 共8种解码");
-            TvRecyclerView rv = dialog.findViewById(R.id.list);
-            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
-            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
-                @Override public void click(String value, int pos) {
-                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put(HawkConfig.PLAY_USE_SOFT, false); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_TYPE, 1); Hawk.put(HawkConfig.PLAY_USE_SOFT, true); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put(HawkConfig.PLAY_USE_SOFT, false); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 3) { Hawk.put(HawkConfig.PLAY_TYPE, 2); Hawk.put(HawkConfig.PLAY_USE_SOFT, true); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 4) { Hawk.put(HawkConfig.PLAY_TYPE, 0); Hawk.put("EXT_PLAY_TYPE", ""); }
-                    else if (pos == 5) { Hawk.put("EXT_PLAY_TYPE", "VLC"); Hawk.put("EXT_PLAY_PKG", "org.videolan.vlc"); }
-                    else if (pos == 6) { Hawk.put("EXT_PLAY_TYPE", "MX"); Hawk.put("EXT_PLAY_PKG", "com.mxtech.videoplayer.ad"); }
-                    else if (pos == 7) { Hawk.put("EXT_PLAY_TYPE", "KODI"); Hawk.put("EXT_PLAY_PKG", "org.xbmc.kodi"); }
-                    Toast.makeText(HomeActivity.this, "已切换为: " + value, Toast.LENGTH_LONG).show();
-                    dialog.dismiss();
-                }
-                @Override public String getDisplay(String val) { return val; }
-            }, new DiffUtil.ItemCallback<String>() {
-                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-            }, players, curIdx);
-            dialog.show();
-        } catch (Exception ignore) {}
-    }
-
-    private void showDecodeSwitch() {
-        try {
-            List<String> decodes = new ArrayList<>();
-            decodes.add("硬解码 - 省电秒开 ★");
-            decodes.add("软解码 - 兼容生僻格式");
-            decodes.add("硬解+软解自动 - 智能切换 (推荐)");
-            decodes.add("强制硬解MediaCodec");
-            decodes.add("强制硬解OMX");
-            int mode = Hawk.get("DECODE_MODE", 0);
-            SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("解码速度优化");
-            TvRecyclerView rv = dialog.findViewById(R.id.list);
-            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
-            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
-                @Override public void click(String value, int pos) {
-                    if (pos == 0) { Hawk.put(HawkConfig.PLAY_USE_SOFT, false); Hawk.put("DECODE_MODE", 0); }
-                    else if (pos == 1) { Hawk.put(HawkConfig.PLAY_USE_SOFT, true); Hawk.put("DECODE_MODE", 1); }
-                    else if (pos == 2) { Hawk.put(HawkConfig.PLAY_USE_SOFT, false); Hawk.put("DECODE_MODE", 2); Hawk.put(HawkConfig.PLAY_TYPE, 2); } // 自动模式用Exo最快
-                    else if (pos == 3) { Hawk.put("DECODE_MODE", 3); Hawk.put(HawkConfig.PLAY_TYPE, 2); }
-                    else if (pos == 4) { Hawk.put("DECODE_MODE", 4); Hawk.put(HawkConfig.PLAY_TYPE, 1); }
-                    Toast.makeText(HomeActivity.this, "已切换: " + value, Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                }
-                @Override public String getDisplay(String val) { return val; }
-            }, new DiffUtil.ItemCallback<String>() {
-                @Override public boolean areItemsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-                @Override public boolean areContentsTheSame(@NonNull String o, @NonNull String n) { return o.equals(n); }
-            }, decodes, mode);
-            dialog.show();
-        } catch (Exception ignore) {}
     }
     private boolean skipNextUpdate = false;
     private void initViewModel() {
@@ -548,3 +346,4 @@ public class HomeActivity extends BaseActivity {
     private void refreshEmpty() { try { skipNextUpdate=true; showSuccess(); if (sortAdapter!= null) sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); if (tvName!= null) tvName.clearAnimation(); } catch (Exception ignore) {} }
     private void tvNameAnimation() { try { if (tvName == null) return; AlphaAnimation blinkAnimation = new AlphaAnimation(0.0f, 1.0f); blinkAnimation.setDuration(500); blinkAnimation.setStartOffset(20); blinkAnimation.setRepeatMode(Animation.REVERSE); blinkAnimation.setRepeatCount(Animation.INFINITE); tvName.startAnimation(blinkAnimation); } catch (Exception ignore) {} }
 }
+
