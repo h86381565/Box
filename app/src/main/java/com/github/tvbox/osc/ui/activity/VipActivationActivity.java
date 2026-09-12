@@ -20,12 +20,12 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class VipActivationActivity extends Activity {
 
-    private static final String PUBLIC_KEY_B64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCg/N4N6eBkATND5DUWTeWWVKgNWCvjALAZliIVGR39V6Ce07+nRrWzr3/zxV6VT8qejyGxad+bKZdBusMDxm20n2xVzjyC3xGzbE+B1Ew+RWJuEdmBPkaIEhQKVXzLPzm+Gwba7CBwgGr163VmXQ0mWgB5j88+fVCTfOScXt1MBQIDAQAB";
+    // 最终固定公钥，和你桌面 index.html 里的私钥是同一对
+    private static final String PUBLIC_KEY_B64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDByzfIpXi1QNbGKorQhmHSQ5TTxQOQDEtP/LIFmjqxbB2yxSg0Nk6KGDrDnYUQ+TQiYqcg/bUX0hpTNa9+Ks0JZ8ayH9Cf6C10peccu4MiiRLFbX2qsRL1iD0vXj7XgMloB14jNuOB5lEHehDtgxYF+p+5TxQKQKpfjvR0FzlaFwIDAQAB";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         SharedPreferences sp = getSharedPreferences("vip", MODE_PRIVATE);
         long savedExpire = sp.getLong("expire", 0);
         boolean isVip = sp.getBoolean("isVip", false);
@@ -34,22 +34,18 @@ public class VipActivationActivity extends Activity {
             finish();
             return;
         }
-
         String deviceId = AuthUtil.getDeviceId(this);
-
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER);
         root.setBackgroundColor(Color.parseColor("#7C4DFF"));
         root.setPadding(50,50,50,50);
-
         TextView tv = new TextView(this);
         tv.setText("VIP影视激活 - 自定义天数版");
         tv.setTextSize(24);
         tv.setTextColor(Color.WHITE);
         tv.setGravity(Gravity.CENTER);
         root.addView(tv);
-
         TextView tvDevice = new TextView(this);
         tvDevice.setText("设备码(复制给卖家):\n" + deviceId);
         tvDevice.setTextSize(12);
@@ -58,7 +54,6 @@ public class VipActivationActivity extends Activity {
         tvDevice.setTextIsSelectable(true);
         tvDevice.setPadding(0,30,0,20);
         root.addView(tvDevice);
-
         EditText et = new EditText(this);
         et.setHint("粘贴卖家发的激活码(长串)");
         et.setBackgroundColor(Color.WHITE);
@@ -68,7 +63,6 @@ public class VipActivationActivity extends Activity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 160);
         lp.topMargin = 10;
         root.addView(et, lp);
-
         Button btn = new Button(this);
         btn.setText("立即激活");
         btn.setTextColor(Color.WHITE);
@@ -77,13 +71,11 @@ public class VipActivationActivity extends Activity {
         lp2.topMargin = 25;
         lp2.gravity = Gravity.CENTER;
         root.addView(btn, lp2);
-
         TextView err = new TextView(this);
         err.setTextColor(Color.YELLOW);
         err.setGravity(Gravity.CENTER);
         err.setPadding(0,20,0,0);
         root.addView(err);
-
         btn.setOnClickListener(v -> {
             String code = et.getText().toString();
             long expire = verifyAndGetExpire(code, deviceId, err);
@@ -98,13 +90,10 @@ public class VipActivationActivity extends Activity {
         setContentView(root);
     }
 
-    // 修复版：去空格、去横杠、兼容两种签名数据
     private long verifyAndGetExpire(String code, String currentDeviceId, TextView errView) {
         try {
-            // 1. 激活码去所有空白，你截图那种换行必删
             String cleanCode = code.replaceAll("\\s", "").trim();
             if (cleanCode.isEmpty()) { errView.setText("请输入激活码"); return 0; }
-
             String decoded;
             try {
                 decoded = new String(Base64.decode(cleanCode, Base64.DEFAULT), "UTF-8");
@@ -113,15 +102,11 @@ public class VipActivationActivity extends Activity {
             }
             String[] parts = decoded.split("\\|");
             if (parts.length!= 3) { errView.setText("激活码格式错误，请复制完整，当前分割出" + parts.length + "段"); return 0; }
-
             long expire = Long.parseLong(parts[0].trim());
             String deviceCodeInCode = parts[1].trim();
             String sigB64 = parts[2].trim().replaceAll("\\s","");
-
-            // 2. 设备码归一化对比：都去横杠转大写
             String normCurrent = currentDeviceId.replace("-", "").replace(" ", "").toUpperCase();
             String normInCode = deviceCodeInCode.replace("-", "").replace(" ", "").toUpperCase();
-
             if (!normInCode.equals(normCurrent)) {
                 errView.setText("设备码不匹配\n本机:" + currentDeviceId + "\n激活码内:" + deviceCodeInCode);
                 return 0;
@@ -130,17 +115,13 @@ public class VipActivationActivity extends Activity {
                 errView.setText("激活码已过期");
                 return 0;
             }
-
-            // 3. 签名验证，兼容带横杠和不带横杠两种生成方式
             PublicKey pubKey = getPublicKey();
             byte[] sigBytes = Base64.decode(sigB64, Base64.DEFAULT);
-
             String[] tryDatas = new String[]{
-                expire + "|" + deviceCodeInCode, // 按码里原样验
-                expire + "|" + normInCode, // 按去横杠大写验
-                expire + "|" + currentDeviceId // 按本机原样验
+                expire + "|" + deviceCodeInCode,
+                expire + "|" + normInCode,
+                expire + "|" + currentDeviceId
             };
-
             for (String data : tryDatas) {
                 try {
                     Signature sig = Signature.getInstance("SHA256withRSA");
@@ -151,7 +132,6 @@ public class VipActivationActivity extends Activity {
                     }
                 } catch (Exception ignore) {}
             }
-
             errView.setText("签名验证失败，激活码无效");
             return 0;
         } catch (Exception e) {
@@ -163,8 +143,8 @@ public class VipActivationActivity extends Activity {
 
     private PublicKey getPublicKey() throws Exception {
         String raw = PUBLIC_KEY_B64.replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
+               .replace("-----END PUBLIC KEY-----", "")
+               .replaceAll("\\s", "");
         byte[] keyBytes = Base64.decode(raw, Base64.DEFAULT);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
