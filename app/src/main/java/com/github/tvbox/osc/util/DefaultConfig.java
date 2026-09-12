@@ -38,25 +38,63 @@ public class DefaultConfig {
 
     public static List<MovieSort.SortData> adjustSort(String sourceKey, List<MovieSort.SortData> list, boolean withMy) {
         List<MovieSort.SortData> data = new ArrayList<>();
-        if (sourceKey != null) {
-            SourceBean sb = ApiConfig.get().getSource(sourceKey);
-            ArrayList<String> categories = sb.getCategories();
-            if (!categories.isEmpty()) {
-                for (String cate : categories) {
-                    for (MovieSort.SortData sortData : list) {
-                        if (sortData.name.equals(cate)) {
+        if (sourceKey!= null) {
+            try {
+                SourceBean sb = ApiConfig.get().getSource(sourceKey);
+                if (sb!= null) {
+                    ArrayList<String> categories = sb.getCategories();
+                    if (categories!= null &&!categories.isEmpty()) {
+                        for (String cate : categories) {
+                            for (MovieSort.SortData sortData : list) {
+                                if (sortData.name.equals(cate)) {
+                                    if (sortData.filters == null)
+                                        sortData.filters = new ArrayList<>();
+                                    data.add(sortData);
+                                }
+                            }
+                        }
+                    } else {
+                        for (MovieSort.SortData sortData : list) {
                             if (sortData.filters == null)
                                 sortData.filters = new ArrayList<>();
                             data.add(sortData);
                         }
                     }
                 }
-            } else {
+            } catch (Exception e) {
                 for (MovieSort.SortData sortData : list) {
                     if (sortData.filters == null)
                         sortData.filters = new ArrayList<>();
                     data.add(sortData);
                 }
+            }
+        }
+        // ===== 新增：接口没分类或只有1个时，默认给满7个，含电视直播 =====
+        if (data.isEmpty()) {
+            String[] ids = {"movie", "tv", "variety", "anime", "short", "live", "comic"};
+            String[] names = {"电影", "电视剧", "综艺", "动漫", "短视频", "电视直播", "少儿"};
+            for (int i = 0; i < ids.length; i++) {
+                MovieSort.SortData d = new MovieSort.SortData();
+                d.id = ids[i];
+                d.name = names[i];
+                d.filters = new ArrayList<>();
+                data.add(d);
+            }
+        } else {
+            // 接口有数据，但没有直播，也补一个直播入口
+            boolean hasLive = false;
+            for (MovieSort.SortData d : data) {
+                if (d.id.equals("live") || d.name.equals("电视直播") || d.name.equals("直播")) {
+                    hasLive = true;
+                    break;
+                }
+            }
+            if (!hasLive) {
+                MovieSort.SortData live = new MovieSort.SortData();
+                live.id = "live";
+                live.name = "电视直播";
+                live.filters = new ArrayList<>();
+                data.add(live);
             }
         }
         if (withMy)
@@ -66,7 +104,6 @@ public class DefaultConfig {
     }
 
     public static int getAppVersionCode(Context mContext) {
-        //包管理操作管理类
         PackageManager pm = mContext.getPackageManager();
         try {
             PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), 0);
@@ -78,7 +115,6 @@ public class DefaultConfig {
     }
 
     public static void resetApp(Context mContext){
-        //使用
         clearPublic(mContext);
         clearPrivate(mContext);
         restartApp();
@@ -87,21 +123,17 @@ public class DefaultConfig {
     public static void restartApp() {
         Activity activity = AppManager.getInstance().getActivity(HomeActivity.class);
         final Intent intent = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
-        if (intent != null) {
+        if (intent!= null) {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(intent);
         }
-        //杀掉以前进程
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
-    /**
-     * 清空公有目录
-     */
     public static void clearPublic(Context mContext) {
         File dir = new File(App.getInstance().getExternalFilesDir("").getParentFile().getAbsolutePath());
         File[] files = dir.listFiles();
-        if (null != files) {
+        if (null!= files) {
             for (File file : files) {
                 FileUtils.recursiveDelete(file);
             }
@@ -109,21 +141,17 @@ public class DefaultConfig {
         String publicFilePath = Environment.getExternalStorageDirectory().getPath() + "/" + getPackageName(mContext);
         dir = new File(publicFilePath);
         files = dir.listFiles();
-        if (null != files) {
+        if (null!= files) {
             for (File file : files) {
                 FileUtils.recursiveDelete(file);
             }
         }
     }
 
-    /**
-     * 清空私有目录
-     */
-    public static  void clearPrivate(Context mContext) {
-        //清空文件夹
+    public static void clearPrivate(Context mContext) {
         File dir = new File(Objects.requireNonNull(mContext.getFilesDir().getParent()));
         File[] files = dir.listFiles();
-        if (null != files) {
+        if (null!= files) {
             for (File file : files) {
                 if (!file.getName().contains("lib")) {
                     FileUtils.recursiveDelete(file);
@@ -133,7 +161,6 @@ public class DefaultConfig {
     }
 
     public static String getPackageName(Context mContext) {
-        //包管理操作管理类
         PackageManager pm = mContext.getPackageManager();
         try {
             PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), 0);
@@ -144,7 +171,6 @@ public class DefaultConfig {
         return "";
     }
     public static String getAppVersionName(Context mContext) {
-        //包管理操作管理类
         PackageManager pm = mContext.getPackageManager();
         try {
             PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), 0);
@@ -155,35 +181,22 @@ public class DefaultConfig {
         return "";
     }
 
-    /**
-     * 后缀
-     *
-     * @param name
-     * @return
-     */
     public static String getFileSuffix(String name) {
         if (TextUtils.isEmpty(name)) {
             return "";
         }
         int endP = name.lastIndexOf(".");
-        return endP > -1 ? name.substring(endP) : "";
+        return endP > -1? name.substring(endP) : "";
     }
 
-    /**
-     * 获取文件的前缀
-     *
-     * @param fileName
-     * @return
-     */
     public static String getFilePrefixName(String fileName) {
         if (TextUtils.isEmpty(fileName)) {
             return "";
         }
         int start = fileName.lastIndexOf(".");
-        return start > -1 ? fileName.substring(0, start) : fileName;
+        return start > -1? fileName.substring(0, start) : fileName;
     }
 
-    // takagen99 : 增加对flv|avi|mkv|rm|wmv|mpg等几种视频格式的支持
     private static final Pattern snifferMatch = Pattern.compile(
             "http((?!http).){20,}?\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg)\\?.*|" +
                     "http((?!http).){20,}\\.(m3u8|mp4|flv|avi|mkv|rm|wmv|mpg)|" +
@@ -205,11 +218,10 @@ public class DefaultConfig {
             return false;
         }
         if (snifferMatch.matcher(url).find()) {
-            return !url.contains(".js") && !url.contains(".css") && !url.contains(".jpg") && !url.contains(".png") && !url.contains(".gif") && !url.contains(".ico") && !url.contains("rl=") && !url.contains(".html");
+            return!url.contains(".js") &&!url.contains(".css") &&!url.contains(".jpg") &&!url.contains(".png") &&!url.contains(".gif") &&!url.contains(".ico") &&!url.contains("rl=") &&!url.contains(".html");
         }
         return false;
     }
-
 
     public static String safeJsonString(JsonObject obj, String key, String defaultVal) {
         try {
@@ -259,8 +271,7 @@ public class DefaultConfig {
 
     public static String[] StoragePermissionGroup() {
         return new String[] {
-                Permission.MANAGE_EXTERNAL_STORAGE                
+                Permission.MANAGE_EXTERNAL_STORAGE
         };
     }
-
 }
