@@ -487,10 +487,29 @@ private void showPlayerSetting() {
         sourceViewModel.sortResult.observe(this, absXml -> {
             if (skipNextUpdate) { skipNextUpdate = false; return; }
             showSuccess();
-            sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null? absXml.classes.sortList : new ArrayList<>(), true));
+            List<MovieSort.SortData> list = new ArrayList<>();
+            try {
+                if (absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null) {
+                    list = absXml.classes.sortList;
+                }
+            } catch (Exception e) { list = new ArrayList<>(); }
+            // 修复：不要用 adjustSort 过滤，玩偶4K等type=3的源会被过滤成空，导致左边点不动没数据
+            if (list.isEmpty()) {
+                try {
+                    list = DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), list, true);
+                } catch (Exception ignore) {}
+            }
+            // 如果还是空，强制给一个默认分类，避免“没找到数据”
+            if (list.isEmpty()) {
+                MovieSort.SortData home = new MovieSort.SortData();
+                home.id = "home";
+                home.name = "首页推荐";
+                list.add(home);
+            }
+            sortAdapter.setNewData(list);
             initViewPager(absXml);
-            SourceBean home = ApiConfig.get().getHomeSourceBean();
-            if (HomeShow && tvName!= null && home!= null && home.getName()!= null &&!home.getName().isEmpty()) { tvName.setText(home.getName()); tvName.clearAnimation(); }
+            SourceBean homeBean = ApiConfig.get().getHomeSourceBean();
+            if (HomeShow && tvName!= null && homeBean!= null && homeBean.getName()!= null &&!homeBean.getName().isEmpty()) { tvName.setText(homeBean.getName()); tvName.clearAnimation(); }
         });
     }
     private boolean dataInitOk = false;
