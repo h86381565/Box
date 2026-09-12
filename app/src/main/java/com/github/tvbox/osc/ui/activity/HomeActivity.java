@@ -493,17 +493,28 @@ private void showPlayerSetting() {
                     list = absXml.classes.sortList;
                 }
             } catch (Exception e) { list = new ArrayList<>(); }
-            // 修复：不要用 adjustSort 过滤，玩偶4K等type=3的源会被过滤成空，导致左边点不动没数据
+            // 修复：不要用 adjustSort 过滤，玩偶4K等type=3的源会被过滤成空
             if (list.isEmpty()) {
                 try {
                     list = DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), list, true);
                 } catch (Exception ignore) {}
             }
-            // 如果还是空，强制给一个默认分类，避免“没找到数据”
+            // 用户要求：去掉 电影片 连续剧 综艺片，从动漫片开始往下都有
+            List<MovieSort.SortData> filtered = new ArrayList<>();
+            for (MovieSort.SortData d : list) {
+                if (d == null || d.name == null) continue;
+                String n = d.name.trim();
+                if (n.equals("电影片") || n.equals("电影") || n.contains("连续剧") || n.equals("电视剧") || n.equals("综艺片") || n.equals("综艺") || n.equals("首页推荐")) {
+                    continue;
+                }
+                filtered.add(d);
+            }
+            list = filtered;
+            // 如果还是空，强制给一个默认分类
             if (list.isEmpty()) {
                 MovieSort.SortData home = new MovieSort.SortData();
-                home.id = "home";
-                home.name = "首页推荐";
+                home.id = "4";
+                home.name = "动漫片";
                 list.add(home);
             }
             sortAdapter.setNewData(list);
