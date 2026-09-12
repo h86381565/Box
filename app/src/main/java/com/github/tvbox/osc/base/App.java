@@ -110,8 +110,8 @@ public class App extends MultiDexApplication {
         Hawk.init(this).build();
         Hawk.put(HawkConfig.DEBUG_OPEN, false);
 
-        // ===== 核心修复：内置你的加速接口，解决 源地址为空 =====
-        putDefault(HawkConfig.API_URL, "https://ghfast.top/https://raw.githubusercontent.com/h86381565/test-TV/main/fantaiying.json");
+        // ===== 核心修复：解决 Read timed out 和 源地址为空 =====
+        putDefault(HawkConfig.API_URL, "https://cdn.jsdelivr.net/gh/h86381565/test-TV@main/fantaiying.json");
 
         // 首页选项
         putDefault(HawkConfig.HOME_SHOW_SOURCE, true);
