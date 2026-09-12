@@ -1,113 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
-    android:background="#0A0A12"
+    android:background="#07080F"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 左侧边栏 220dp 图2 PRO样式 - 这里才是真正的主页导航 -->
-    <LinearLayout 
-        android:orientation="vertical" 
-        android:background="#12121E" 
-        android:padding="14dp" 
-        android:layout_width="220dp" 
+    <!-- 左侧 220dp PRO导航 -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:background="#10111A"
+        android:padding="16dp"
+        android:layout_width="220dp"
         android:layout_height="match_parent">
 
-        <TextView 
+        <TextView
             android:id="@+id/tvName"
-            android:text="VIP影库 ULTRA BOX PRO" 
-            android:textColor="#FFFFFF" 
-            android:textStyle="bold" 
-            android:textSize="13sp" 
-            android:layout_width="wrap_content" 
+            android:text="VIP影库 ULTRA BOX PRO"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:letterSpacing="0.05"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <LinearLayout 
-            android:orientation="vertical" 
-            android:background="#1F1D15" 
-            android:padding="12dp" 
-            android:layout_marginTop="18dp" 
-            android:layout_width="match_parent" 
+        <LinearLayout
+            android:orientation="vertical"
+            android:background="@drawable/bg_vip_pro"
+            android:padding="12dp"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <TextView 
-                android:text="⭐ 超级VIP PRO" 
-                android:textColor="#FBBF24" 
-                android:textSize="11sp" 
-                android:textStyle="bold" 
-                android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"/>
-            <TextView 
-                android:id="@+id/tvVipExpire" 
-                android:text="至 2027-09-11 · 无限观影" 
-                android:textColor="#9CA3AF" 
-                android:textSize="8sp" 
-                android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"/>
+            <TextView android:text="★ 超级VIP PRO" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/tvVipExpire" android:text="至 2027-09-11 · 无限观影" android:textColor="#8B8DA0" android:textSize="9sp" android:layout_marginTop="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- 真正的8个分类导航，HomeActivity会填充这里 -->
+        <!-- 8个分类，这里会自动填充 -->
         <com.owen.tvrecyclerview.widget.TvRecyclerView
             android:id="@+id/mGridViewCategory"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="24dp"
             android:clipChildren="false"
-            android:clipToPadding="false" />
+            android:clipToPadding="false"/>
 
-        <!-- 保留ID兼容，不显示 -->
         <TextView android:id="@+id/tvMenu" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
         <TextView android:id="@+id/tvDrawer" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
         <TextView android:id="@+id/tvStyle" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
     </LinearLayout>
 
-    <!-- 右边主内容 -->
-    <LinearLayout 
-        android:id="@+id/contentLayout" 
-        android:orientation="vertical" 
-        android:padding="18dp" 
-        android:layout_width="0dp" 
-        android:layout_weight="1" 
+    <!-- 右边内容 -->
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:orientation="vertical"
+        android:padding="18dp"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="match_parent">
 
-        <!-- 顶栏 - 保留原来所有ID -->
-        <LinearLayout 
+        <LinearLayout
             android:id="@+id/topLayout"
-            android:orientation="horizontal" 
-            android:layout_width="match_parent" 
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-            <TextView 
-                android:id="@+id/tvWifi" 
-                android:text="🔍 搜索" 
-                android:textColor="#6B7280" 
-                android:background="#1A1A2E" 
-                android:padding="12dp" 
-                android:layout_weight="1" 
-                android:layout_width="0dp" 
-                android:layout_height="wrap_content"/>
+            <!-- 小搜索图标，不再是长条 -->
+            <LinearLayout
+                android:id="@+id/tvWifi"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_search_icon"
+                android:layout_width="56dp"
+                android:layout_height="56dp">
+                <TextView android:text="🔍" android:textSize="18sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="搜索" android:textColor="#9AA0B5" android:textSize="9sp" android:layout_marginTop="2dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
 
-            <TextView android:id="@+id/tvFind" android:text="发现" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/tvFind" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
 
-            <TextView 
-                android:id="@+id/tvDate" 
-                android:text="09月12日 | 周六 13:13" 
-                android:textColor="#6B7280" 
-                android:background="#1A1A2E" 
-                android:padding="10dp" 
-                android:layout_marginStart="12dp" 
-                android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"/>
+            <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp"/>
+
+            <!-- 高大上日期卡片 -->
+            <LinearLayout
+                android:background="@drawable/bg_date_premium"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView android:text="◷" android:textColor="#6C6F83" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tvDate"
+                    android:text="09月12日 | 周六 13:27"
+                    android:textColor="#E6E8F0"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.04"
+                    android:layout_marginStart="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- 右边点播墙，HomeActivity的ViewPager -->
         <com.github.tvbox.osc.ui.tv.widget.NoScrollViewPager
             android:id="@+id/mViewPager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:layout_marginTop="16dp"
-            android:background="@android:color/black" />
+            android:background="@android:color/black"/>
     </LinearLayout>
 </LinearLayout>
