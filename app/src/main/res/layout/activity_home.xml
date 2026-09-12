@@ -20,9 +20,9 @@
         </LinearLayout>
 
         <!-- 历史观看按钮 - 高级居中样式 -->
-        <LinearLayout android:id="@+id/tvHistory" android:orientation="horizontal" android:gravity="center" android:focusable="true" android:clickable="true" android:background="@drawable/bg_pill_gold" android:padding="10dp" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="36dp">
-            <TextView android:text="▶" android:textColor="#10111A" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:text="观看历史" android:textColor="#10111A" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <LinearLayout android:id="@+id/tvHistory" android:orientation="horizontal" android:gravity="center" android:focusable="true" android:clickable="true" android:background="@drawable/bg_vip_pro" android:padding="10dp" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="36dp">
+            <TextView android:text="▶" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:text="观看历史" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <!-- 高级导航 - 居中文字 -->
