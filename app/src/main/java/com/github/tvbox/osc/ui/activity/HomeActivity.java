@@ -225,24 +225,38 @@ public class HomeActivity extends BaseActivity {
             tvFind.setFocusable(true);
             tvFind.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) { Toast.makeText(this, "搜索打开失败", Toast.LENGTH_SHORT).show(); } });
         }
-        if (tvWifi!= null) tvWifi.setOnClickListener(v -> { try { startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); }catch (Exception ignored){} });
+        if (tvWifi!= null) { tvWifi.setFocusable(true); tvWifi.setOnClickListener(v -> { try { jumpActivity(SearchActivity.class); } catch (Exception e) {} }); }
+        if (tvPlayerSetting!= null) {
+            tvPlayerSetting.setFocusable(true);
+            tvPlayerSetting.setClickable(true);
+            tvPlayerSetting.setOnClickListener(v -> { FastClickCheckUtil.check(v); showPlayerSetting(); });
+            tvPlayerSetting.setOnLongClickListener(v -> { jumpActivity(SettingActivity.class); return true; });
+        }
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
-        if (tvDraw!= null) tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); });
-        if (tvMenu!= null) tvMenu.setOnClickListener(v->{ jumpActivity(SettingActivity.class); });
-        if (tvDate!= null) { tvDate.setFocusable(false); tvDate.setClickable(false); tvDate.setOnClickListener(null); }
+        if (tvDraw!= null) { tvDraw.setFocusable(true); tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); }); }
+        if (tvMenu!= null) { tvMenu.setFocusable(true); tvMenu.setClickable(true); tvMenu.setOnClickListener(v->{ FastClickCheckUtil.check(v); jumpActivity(SettingActivity.class); }); }
+        // 长按系统设置也能调解码器，收费版方便调试
+        if (tvMenu!= null) { tvMenu.setOnLongClickListener(v->{ showPlayerSetting(); return true; }); }
+        if (tvDate!= null) { tvDate.setFocusable(false); tvDate.setClickable(false); tvDate.setFocusableInTouchMode(false); tvDate.setOnClickListener(null); }
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
     }
+
 
     private void showPlayerSetting() {
         try {
             List<String> items = new ArrayList<>();
-            items.add("★ 自动选择最优解码 (推荐)");
-            items.add("播放器选择 (当前: " + getCurrentPlayerName() + ")");
-            items.add("解码方式 (当前: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解") + ")");
-            items.add("打开系统设置");
+            items.add("★ 自动选择最优解码 (推荐) - " + getDeviceBestHint());
+            items.add("播放器内核: " + getCurrentPlayerName());
+            items.add("解码方式: " + (Hawk.get("PLAY_USE_SOFT", false) ? "软解" : "硬解") + " (点击切换)");
+            items.add("---------- 系统功能 ----------");
+            items.add("切换线路");
+            items.add("搜索影视");
+            items.add("清理缓存");
+            items.add("应用管理");
+            items.add("系统设置");
             SelectDialog<String> dialog = new SelectDialog<>(this);
-            dialog.setTip("播放器设置 - " + getDeviceBestHint());
+            dialog.setTip("ULTRA BOX PRO 设置");
             TvRecyclerView rv = dialog.findViewById(R.id.list);
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
             dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
@@ -251,7 +265,14 @@ public class HomeActivity extends BaseActivity {
                     if (pos == 0) autoSelectBestDecoder();
                     else if (pos == 1) showPlayerTypeSwitch();
                     else if (pos == 2) showDecodeSwitch();
-                    else if (pos == 3) jumpActivity(SettingActivity.class);
+                    else if (pos == 4) showSiteSwitch();
+                    else if (pos == 5) { try { jumpActivity(SearchActivity.class); } catch (Exception e) {} }
+                    else if (pos == 6) { 
+                        try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {}
+                        Toast.makeText(HomeActivity.this, "缓存已清理", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (pos == 7) { try { jumpActivity(AppsActivity.class); } catch (Exception e) {} }
+                    else if (pos == 8) jumpActivity(SettingActivity.class);
                 }
                 @Override public String getDisplay(String val) { return val; }
             }, new DiffUtil.ItemCallback<String>() {
@@ -261,6 +282,7 @@ public class HomeActivity extends BaseActivity {
             dialog.show();
         } catch (Exception ignore) {}
     }
+
 
     private void autoSelectBestDecoder() {
         try {
