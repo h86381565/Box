@@ -30,16 +30,19 @@
 
         <LinearLayout android:id="@+id/topLayout" android:orientation="horizontal" android:gravity="center_vertical" android:background="#07080F" android:paddingStart="10dp" android:paddingEnd="10dp" android:layout_width="match_parent" android:layout_height="38dp">
 
-            <LinearLayout android:id="@+id/tvWifi" android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/bg_search_icon" android:paddingStart="10dp" android:paddingEnd="10dp" android:layout_width="wrap_content" android:layout_height="28dp">
+            <!-- 搜索按钮用 tvFind，Java里已经改为跳搜索 -->
+            <LinearLayout android:id="@+id/tvFind" android:orientation="horizontal" android:gravity="center_vertical" android:focusable="true" android:clickable="true" android:background="@drawable/bg_search_icon" android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_width="wrap_content" android:layout_height="28dp">
                 <TextView android:text="🔍" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="搜索" android:textColor="#9AA0B5" android:textSize="10sp" android:layout_marginStart="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="搜索" android:textColor="#9AA0B5" android:textSize="10sp" android:layout_marginStart="5dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <TextView android:id="@+id/tvFind" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
+            <!-- 保留 tvWifi 隐藏，防止 findViewById null，但也指向搜索 -->
+            <View android:id="@+id/tvWifi" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
+
             <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp"/>
 
             <LinearLayout android:background="@drawable/bg_date_premium" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="4dp" android:paddingBottom="4dp" android:layout_width="wrap_content" android:layout_height="22dp">
-                <TextView android:id="@+id/tvDate" android:text="09月12日 | 周六 13:59" android:textColor="#E6E8F0" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvDate" android:text="09月12日 | 周六 14:10" android:textColor="#E6E8F0" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
 
