@@ -21,7 +21,8 @@ import java.security.spec.X509EncodedKeySpec;
 public class VipActivationActivity extends Activity {
 
     // 最终固定公钥，和你桌面 index.html 里的私钥是同一对
-    private static final String PUBLIC_KEY_B64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDByzfIpXi1QNbGKorQhmHSQ5TTxQOQDEtP/LIFmjqxbB2yxSg0Nk6KGDrDnYUQ+TQiYqcg/bUX0hpTNa9+Ks0JZ8ayH9Cf6C10peccu4MiiRLFbX2qsRL1iD0vXj7XgMloB14jNuOB5lEHehDtgxYF+p+5TxQKQKpfjvR0FzlaFwIDAQAB";
+    // 把旧的 QCg/N4... 删掉，换成这个
+private static final String PUBLIC_KEY_B64 = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDByzfIpXi1QNbGKorQhmHSQ5TTxQOQDEtP/LIFmjqxbB2yxSg0Nk6KGDrDnYUQ+TQiYqcg/bUX0hpTNa9+Ks0JZ8ayH9Cf6C10peccu4MiiRLFbX2qsRL1iD0vXj7XgMloB14jNuOB5lEHehDtgxYF+p+5TxQKQKpfjvR0FzlaFwIDAQAB";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
