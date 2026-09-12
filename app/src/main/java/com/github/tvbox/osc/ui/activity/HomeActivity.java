@@ -190,7 +190,6 @@ public class HomeActivity extends BaseActivity {
                     if (view!= null) {
                         try {
                             MovieSort.SortData sortData = sortAdapter.getItem(position);
-                            // ===== 新增：电视直播，选中直接进直播 =====
                             if (sortData!= null && "live".equals(sortData.id)) {
                                 jumpActivity(LivePlayActivity.class);
                                 return;
@@ -218,7 +217,6 @@ public class HomeActivity extends BaseActivity {
                     if (itemView == null) return;
                     try {
                         MovieSort.SortData sortData = sortAdapter.getItem(position);
-                        // ===== 新增：点电视直播直接进直播页 =====
                         if (sortData!= null && "live".equals(sortData.id)) {
                             jumpActivity(LivePlayActivity.class);
                             return;
@@ -333,7 +331,6 @@ public class HomeActivity extends BaseActivity {
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
                     if ("live".equals(data.id)) {
-                        // 直播用空的UserFragment占位，不会崩，点的时候已经跳转了
                         fragments.add(UserFragment.newInstance(null));
                     } else if (data.id.equals("my0")) {
                         try {
