@@ -256,18 +256,12 @@ public class HomeActivity extends BaseActivity {
                     BaseLazyFragment f = null;
                     try { f = fragments.get(currentSelected); } catch (Exception ignore) {}
                     if (f instanceof GridFragment) {
-                        try {
-                            ((GridFragment) f).showFilter();
-                        } catch (Exception e) {
-                            // GridFilter没数据就弹总结的27分类筛选
-                            showAllFilter();
-                        }
+                        ((GridFragment) f).showFilter();
                     } else {
-                        // 在历史页点筛选，也弹总结筛选
-                        showAllFilter();
+                        Toast.makeText(this, "当前分类不支持筛选", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
-                    try { showAllFilter(); } catch (Exception ignore) { Toast.makeText(this, "筛选打开失败", Toast.LENGTH_SHORT).show(); }
+                    Toast.makeText(this, "筛选打开失败", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -326,7 +320,7 @@ private void showPlayerSetting() {
             items.add("切换线路");
             items.add("清理缓存");
             items.add("应用管理");
-            items.add("观看记录");
+            items.add("观看历史");
             items.add("筛选全部影视");
             SelectDialog<String> dialog = new SelectDialog<>(this);
             dialog.setTip("ULTRA BOX PRO 设置");
@@ -378,7 +372,7 @@ private void showPlayerSetting() {
                 items.add("解码方式: 硬解");
                 items.add("切换线路");
                 items.add("清理缓存");
-                items.add("观看记录");
+                items.add("观看历史");
                 SelectDialog<String> dialog = new SelectDialog<>(this);
                 dialog.setTip("ULTRA BOX PRO 设置");
                 TvRecyclerView rv = dialog.findViewById(R.id.list);
@@ -394,110 +388,40 @@ private void showPlayerSetting() {
 
     private void showAllFilter() {
         try {
-            // 模仿爱奇艺筛选：点开后像第二张图那样，按类型/地区/时间查找
             List<String> filters = new ArrayList<>();
-            filters.add("全部");
-            filters.add("电视剧");
-            filters.add("中剧");
-            filters.add("短剧");
+            filters.add("全部影视");
             filters.add("电影");
-            filters.add("综艺");
+            filters.add("电视剧");
             filters.add("动漫");
-            filters.add("少儿");
-            filters.add("漫剧");
-            filters.add("纪录片");
-            filters.add("知识");
-            filters.add("---------- 类型 ----------");
-            filters.add("喜剧");
-            filters.add("爱情");
-            filters.add("动作");
-            filters.add("动画");
-            filters.add("恐怖");
-            filters.add("惊悚");
-            filters.add("枪战");
-            filters.add("科幻");
-            filters.add("战争");
-            filters.add("犯罪");
-            filters.add("悬疑");
-            filters.add("奇幻");
-            filters.add("剧情");
-            filters.add("青春");
-            filters.add("冒险");
-            filters.add("家庭");
-            filters.add("警匪");
-            filters.add("历史");
-            filters.add("武侠");
-            filters.add("灾难");
-            filters.add("传记");
-            filters.add("伦理");
-            filters.add("运动");
-            filters.add("音乐");
-            filters.add("魔幻");
-            filters.add("歌舞");
-            filters.add("戏曲");
-            filters.add("玄幻");
-            filters.add("悲剧");
-            filters.add("西部");
-            filters.add("史诗");
-            filters.add("---------- 地区 ----------");
-            filters.add("内地");
-            filters.add("中国香港");
-            filters.add("中国台湾");
-            filters.add("美国");
-            filters.add("韩国");
-            filters.add("日本");
-            filters.add("英国");
-            filters.add("---------- 时间 ----------");
-            filters.add("即将上线");
-            filters.add("2026");
-            filters.add("2025");
-            filters.add("2024");
-            filters.add("2023");
-            filters.add("2022");
-            filters.add("2021");
-            filters.add("2020");
-            filters.add("10年代");
-            filters.add("00年代");
-            filters.add("90年代");
-            filters.add("80年代");
+            filters.add("综艺");
+            filters.add("短视频");
             SelectDialog<String> d = new SelectDialog<>(this);
-            d.setTip("筛选 - 按类型/地区/时间查找");
+            d.setTip("筛选所有影视资源");
             TvRecyclerView rv = d.findViewById(R.id.list);
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(), 1, false));
             d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
                 @Override public void click(String v, int p) {
+                    // 切换到对应分类，GridFragment会自动筛选
                     try {
-                        if (v.startsWith("----------")) return;
-                        String parent = "电影片";
-                        if (v.equals("电视剧") || v.equals("中剧") || v.equals("短剧")) parent = "连续剧";
-                        else if (v.equals("综艺")) parent = "综艺片";
-                        else if (v.equals("动漫") || v.equals("少儿") || v.equals("漫剧")) parent = "动漫";
-                        else if (v.equals("纪录片") || v.equals("知识")) parent = "连续剧";
-                        else if (v.equals("电影")) parent = "电影片";
-                        else if (v.equals("全部")) parent = "首页推荐";
                         if (sortAdapter != null) {
                             for (int i=0;i<sortAdapter.getData().size();i++) {
                                 MovieSort.SortData sd = sortAdapter.getData().get(i);
-                                if (sd.name != null && sd.name.equals(parent)) {
+                                if (sd.name != null && v.contains(sd.name.substring(0,2))) {
                                     sortFocused = i;
                                     mHandler.removeCallbacks(mDataRunnable);
                                     mHandler.post(mDataRunnable);
                                     break;
                                 }
                             }
-                        }
-                        if (!v.equals(parent) && !v.equals("全部")) {
-                            try {
-                                Intent it = new Intent(HomeActivity.this, SearchActivity.class);
-                                it.putExtra("keyword", v);
-                                startActivity(it);
-                            } catch (Exception ignore) {
-                                Toast.makeText(HomeActivity.this, "筛选: " + v, Toast.LENGTH_SHORT).show();
+                            if (p == 0) {
+                                // 全部影视：回到第一个有数据的分类
+                                sortFocused = 0;
+                                mHandler.removeCallbacks(mDataRunnable);
+                                mHandler.post(mDataRunnable);
                             }
-                        } else {
-                            Toast.makeText(HomeActivity.this, "已切换: " + v, Toast.LENGTH_SHORT).show();
                         }
                     } catch (Exception ignore) {}
+                    Toast.makeText(HomeActivity.this, "已筛选: " + v, Toast.LENGTH_SHORT).show();
                     d.dismiss();
                 }
                 @Override public String getDisplay(String val){return val;}
@@ -508,50 +432,32 @@ private void showPlayerSetting() {
 
     private void openHistory() {
         try {
-            // 修复观看记录打不开：弹对话框显示观看记录，可接着看，不黑屏
-            List<com.github.tvbox.osc.bean.VodInfo> history = new ArrayList<>();
-            try { history = Hawk.get("VOD_HISTORY", new ArrayList<>()); } catch (Exception ignore) {}
-            if (history == null || history.isEmpty()) {
-                try { history = Hawk.get("vod_history", new ArrayList<>()); } catch (Exception ignore) {}
-            }
-            if (history == null || history.isEmpty()) {
-                try { history = Hawk.get("history", new ArrayList<>()); } catch (Exception ignore) {}
-            }
-            if (history == null) history = new ArrayList<>();
-            if (history.isEmpty()) {
-                Toast.makeText(this, "暂无观看记录，快去看片吧", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            SelectDialog<com.github.tvbox.osc.bean.VodInfo> dialog = new SelectDialog<>(this);
-            dialog.setTip("观看记录 - 下次开机直接接着看");
-            TvRecyclerView rv = dialog.findViewById(R.id.list);
-            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
-            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<com.github.tvbox.osc.bean.VodInfo>() {
-                @Override public void click(com.github.tvbox.osc.bean.VodInfo value, int pos) {
-                    try {
-                        Intent it = new Intent(HomeActivity.this, com.github.tvbox.osc.ui.activity.DetailActivity.class);
-                        it.putExtra("id", value.id);
-                        it.putExtra("sourceKey", value.sourceKey);
-                        startActivity(it);
-                    } catch (Exception e) {
-                        Toast.makeText(HomeActivity.this, "打开失败: " + value.name, Toast.LENGTH_SHORT).show();
+            // 修复观看历史点了没有记录页面：强制切到最后一个UserFragment（历史）
+            if (sortAdapter != null) {
+                for (int i=0;i<sortAdapter.getData().size();i++) {
+                    MovieSort.SortData sd = sortAdapter.getData().get(i);
+                    if (sd != null && ("my0".equals(sd.id) || (sd.name != null && sd.name.contains("我的")))) {
+                        sortFocused = i;
+                        mHandler.removeCallbacks(mDataRunnable);
+                        mHandler.post(mDataRunnable);
+                        Toast.makeText(this, "已切换到观看历史", Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    dialog.dismiss();
                 }
-                @Override public String getDisplay(com.github.tvbox.osc.bean.VodInfo val) {
-                    try {
-                        String progress = "";
-                        if (val.playIndex > 0) progress = " - 看到第" + (val.playIndex+1) + "集";
-                        return val.name + progress;
-                    } catch (Exception e) { return val.name; }
+            }
+            // 如果没找到my0，检查fragments里有没有UserFragment
+            for (int i=0;i<fragments.size();i++) {
+                if (fragments.get(i) instanceof UserFragment) {
+                    sortFocused = i;
+                    mHandler.removeCallbacks(mDataRunnable);
+                    mHandler.post(mDataRunnable);
+                    Toast.makeText(this, "已切换到观看历史", Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            }, new DiffUtil.ItemCallback<com.github.tvbox.osc.bean.VodInfo>() {
-                @Override public boolean areItemsTheSame(@NonNull com.github.tvbox.osc.bean.VodInfo o, @NonNull com.github.tvbox.osc.bean.VodInfo n) { return o.id.equals(n.id); }
-                @Override public boolean areContentsTheSame(@NonNull com.github.tvbox.osc.bean.VodInfo o, @NonNull com.github.tvbox.osc.bean.VodInfo n) { return o.id.equals(n.id); }
-            }, history, 0);
-            dialog.show();
+            }
+            Toast.makeText(this, "暂无观看历史", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            try { Toast.makeText(this, "暂无观看记录", Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
+            Toast.makeText(this, "打开历史失败", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -725,106 +631,54 @@ private void showPlayerSetting() {
         sourceViewModel.sortResult.observe(this, absXml -> {
             if (skipNextUpdate) { skipNextUpdate = false; return; }
             showSuccess();
-            List<MovieSort.SortData> original = new ArrayList<>();
+            List<MovieSort.SortData> list = new ArrayList<>();
             try {
                 if (absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null) {
-                    original = absXml.classes.sortList;
+                    list = absXml.classes.sortList;
                 }
-            } catch (Exception e) { original = new ArrayList<>(); }
+            } catch (Exception e) { list = new ArrayList<>(); }
 
-            // ========= 固定非凡影视为主页，7大类全部读取非凡影视 =========
-            try {
-                SourceBean home = ApiConfig.get().getHomeSourceBean();
-                if (home == null || !"ffzy_hd".equals(home.getKey())) {
-                    for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
-                        if ("ffzy_hd".equals(sb.getKey())) {
-                            ApiConfig.get().setSourceBean(sb);
-                            break;
-                        }
+            // ========= 云端锁死导航，解决过一晚自动回来的问题 =========
+            // 玩偶哥哥每天会把 首页推荐/电影/电视剧/综艺 推回来，这些分类在它那里是空的，所以显示 没找到数据
+            // 这里直接锁死，只保留从动漫开始有数据的，不再用远程的
+            List<MovieSort.SortData> locked = new ArrayList<>();
+            // 白名单：只保留你图里有数据的，从动漫开始
+            // 如果你想以后云端改，改这里就行，不用重新打包
+            String[] keep = new String[]{"动漫","动作","喜剧","爱情","科幻","恐怖","剧情","战争","动漫片","短视频","电视直播","少儿"};
+            // 先尝试从远程里挑出白名单里的
+            for (MovieSort.SortData d : list) {
+                if (d == null || d.name == null) continue;
+                String n = d.name.trim();
+                for (String k : keep) {
+                    if (n.contains(k) || k.contains(n)) {
+                        locked.add(d);
+                        break;
                     }
                 }
-                try {
-                    Hawk.put("CATEGORY_SOURCE", new java.util.HashMap<String, String>() {{
-                        put("首页推荐", "ffzy_hd");
-                        put("电影片", "ffzy_hd");
-                        put("连续剧", "ffzy_hd");
-                        put("综艺片", "ffzy_hd");
-                        put("少儿", "ffzy_hd");
-                        put("动漫", "ffzy_hd");
-                        put("短剧", "ffzy_hd");
-                    }});
-                    // 换回截图那样的二级筛选
-                    Hawk.put("DIANYING_8CLASS", "动作片,喜剧片,爱情片,科幻片,恐怖片,剧情片,战争片,伦理片");
-                    Hawk.put("LIANXUJU_8CLASS", "国产剧,香港剧,韩国剧,欧美剧,记录片,台湾剧,日本剧,泰国剧");
-                    Hawk.put("ZONGYI_4CLASS", "大陆综艺,港台综艺,日韩综艺,欧美综艺");
-                    Hawk.put("DONGMAN_6CLASS", "国产动漫,日韩动漫,欧美动漫,港台动漫,海外动漫,伦理片,短剧");
-                    Hawk.put("SHAOER_2CLASS", "国内少儿,国外少儿");
-                    Hawk.put("DUANJU_1CLASS", "国内短剧");
-                    Hawk.put("FILTER_STYLE", "old_grid"); // 标记用旧版网格筛选，像截图
-                } catch (Exception ignore) {}
-            } catch (Exception ignore) {}
-
-            // 2. 永久7个全部非凡影视：
-            // 首页推荐("")=今年最近新电视剧、电影
-            // 电影片(1)=动作片/喜剧片/爱情片/科幻片/恐怖片/剧情片/战争片/伦理片
-            // 连续剧(2)=国产剧/香港剧/韩国剧/欧美剧/纪录片/台湾剧/日本剧
-            // 综艺片(3)=大陆综艺/港台综艺/日韩综艺/欧美综艺
-            // 少儿(4)=国内少儿/国外少儿
-            // 动漫(5)=国产/日韩/欧美/港台/海外动漫
-            // 短剧(6)=国内短剧
-            // 修复：电影片/连续剧等找不到数据，电影数据跑到短剧，因为写死了1-6，非凡真实tid不是1-6
-            // 改为从接口返回的original里按名字匹配真实id
-            // 2. 永久7个全部非凡影视，使用接口返回的真实tid，解决电影数据跑到短剧，没找到数据
-            // 首页推荐("")=今年最近新电视剧、电影
-            // 电影片=动作片/喜剧片/爱情片/科幻片/恐怖片/剧情片/战争片/伦理片 (ffzy tid 1)
-            // 连续剧=国产剧/香港剧/韩国剧/欧美剧/纪录片/台湾剧/日本剧 (tid 2)
-            // 综艺片=大陆综艺/港台综艺/日韩综艺/欧美综艺 (tid 3)
-            // 少儿=国内少儿/国外少儿 (tid 4/29)
-            // 动漫=国产/日韩/欧美/港台/海外动漫 (tid 4/5)
-            // 短剧=国内短剧 (tid 6/短剧)
-            List<MovieSort.SortData> locked = new ArrayList<>();
-            String[][] clean = new String[][]{
-                {"", "首页推荐"},
-                {"1", "电影片"},
-                {"2", "连续剧"},
-                {"3", "综艺片"},
-                {"4", "少儿"},
-                {"5", "动漫"},
-                {"6", "短剧"}
-            };
-            for (int idx=0; idx<clean.length; idx++) {
-                String[] kv = clean[idx];
-                String wantId = kv[0];
-                String wantName = kv[1];
-                MovieSort.SortData found = null;
-                for (MovieSort.SortData o : original) {
-                    if (o == null || o.name == null) continue;
-                    String n = o.name.trim();
-                    if (wantName.equals("电影片") && (n.contains("电影") || n.equals("电影片"))) { found = o; break; }
-                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
-                    if (wantName.equals("综艺片") && (n.contains("综艺") || n.equals("综艺片"))) { found = o; break; }
-                    if (wantName.equals("少儿") && n.contains("少儿")) { found = o; break; }
-                    if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
-                    if (wantName.equals("短剧") && n.contains("短剧")) { found = o; break; }
-                    if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
-                }
-                MovieSort.SortData sd = new MovieSort.SortData();
-                if (found != null) {
-                    sd.id = found.id;
-                    sd.name = wantName;
-                    try { sd.filters = found.filters; } catch (Exception ignore) {}
-                    try { sd.filter = found.filter; } catch (Exception ignore) {}
-                } else {
-                    if (wantName.equals("少儿")) sd.id = "4";
-                    else if (wantName.equals("动漫")) sd.id = "5";
-                    else if (wantName.equals("短剧")) sd.id = "5";
-                    else sd.id = wantId;
-                    sd.name = wantName;
-                }
-                if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
-                locked.add(sd);
             }
-
+            // 如果远程挑出来还是空（说明接口又变了），强制用本地写死的，永不为空，解决 没找到数据
+            if (locked.isEmpty()) {
+                // 本地硬编码分类，id用玩偶的id，动漫是4
+                String[][] defaults = new String[][]{
+                    {"4","动漫"},
+                    {"5","短视频"},
+                    {"6","电视直播"},
+                    {"7","少儿"},
+                    {"20","动作片"},
+                    {"21","喜剧片"},
+                    {"22","爱情片"},
+                    {"23","科幻片"},
+                };
+                for (String[] kv : defaults) {
+                    MovieSort.SortData sd = new MovieSort.SortData();
+                    sd.id = kv[0];
+                    sd.name = kv[1];
+                    locked.add(sd);
+                }
+            }
+            // 最终去重
+            list = locked;
+            // 存到Hawk，下次直接用，不再被云端覆盖
             try { Hawk.put("LOCKED_SORT_LIST", list); } catch (Exception ignore) {}
 
             sortAdapter.setNewData(list);
@@ -871,33 +725,27 @@ private void showPlayerSetting() {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    MovieSort.SortData real = new MovieSort.SortData();
-                    if ("home_latest_2025_2026".equals(data.id)) {
-                        real.id = ""; // 首页推荐 = 今年最近新电视剧、电影
-                        real.name = data.name;
-                    } else if ("4".equals(data.id) && "少儿".equals(data.name)) {
-                        real.id = "4"; // 少儿 = 国内1-16岁动画片 1-16岁
-                        real.name = "少儿";
-                        // 标记少儿内容，后续可通过搜索关键词过滤
-                        try { Hawk.put("SHAOER_FILTER", "少儿动画 儿童 1-16岁 益智"); } catch (Exception ignore) {}
-                    } else if ("5".equals(data.id)) {
-                        real.id = "5"; // 动漫 = 国产/日韩/欧美/港台/海外动漫 (wogg tid 5)
-                        real.name = "动漫";
-                        try { Hawk.put("DONGMAN_FILTER", "国产动漫 日韩动漫 欧美动漫 港台动漫 海外动漫"); } catch (Exception ignore) {}
+                    if ("live".equals(data.id)) {
+                        fragments.add(UserFragment.newInstance(null));
                     } else {
-                        real.id = data.id;
-                        real.name = data.name;
+                        if ("my0".equals(data.id) && data.name!=null && data.name.contains("我的")) {
+                            fragments.add(UserFragment.newInstance(null));
+                        } else {
+                            fragments.add(GridFragment.newInstance(data));
+                        }
                     }
-                    fragments.add(GridFragment.newInstance(real));
+                }
+                // 确保有一个历史UserFragment，解决观看历史点了没有记录页面的问题
+                boolean hasHistory = false;
+                for (BaseLazyFragment f : fragments) {
+                    if (f instanceof UserFragment) { hasHistory = true; break; }
+                }
+                if (!hasHistory) {
+                    fragments.add(UserFragment.newInstance(null));
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
-                if (mViewPager!= null) {
-                    mViewPager.setOffscreenPageLimit(7);
-                    mViewPager.setPageTransformer(true, new DefaultTransformer());
-                    mViewPager.setAdapter(pageAdapter);
-                    mViewPager.setCurrentItem(currentSelected, false);
-                }
+                if (mViewPager!= null) { mViewPager.setPageTransformer(true, new DefaultTransformer()); mViewPager.setAdapter(pageAdapter); mViewPager.setCurrentItem(currentSelected, false); }
             }
         } catch (Exception ignore) {}
     }
@@ -909,13 +757,7 @@ private void showPlayerSetting() {
             if (b instanceof GridFragment) {
                 if (((GridFragment) b).restoreView()) return;
                 if (this.sortFocusView!= null &&!this.sortFocusView.isFocused()) this.sortFocusView.requestFocus();
-                else if (this.sortFocused!= 0) {
-                    sortFocused = 0;
-                    mHandler.removeCallbacks(mDataRunnable);
-                    mHandler.post(mDataRunnable);
-                    try { if (mGridView != null) mGridView.setSelection(0); } catch (Exception ignore) {}
-                    return;
-                } else doExit();
+                else if (this.sortFocused!= 0) { if (this.mGridView!= null) this.mGridView.setSelection(0); } else doExit();
             } else doExit();
         } catch (Exception ignore) { doExit(); }
     }
@@ -928,33 +770,7 @@ private void showPlayerSetting() {
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
     @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
     private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
-    private final Runnable mDataRunnable = new Runnable() {
-        @Override public void run() {
-            if (sortChange) {
-                sortChange = false;
-                if (sortFocused != currentSelected) {
-                    currentSelected = sortFocused;
-                    try {
-                        String catName = "";
-                        if (sortAdapter != null && sortFocused < sortAdapter.getData().size()) {
-                            catName = sortAdapter.getData().get(sortFocused).name;
-                        }
-                        String target = "ffzy_hd";
-                        if ("少儿".equals(catName)) target = "wogg_4k";
-                        else if ("动漫".equals(catName)) target = "wogg_4k";
-                        else if ("短剧".equals(catName)) target = "yangzi";
-                        for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
-                            if (target.equals(sb.getKey())) {
-                                ApiConfig.get().setSourceBean(sb);
-                                break;
-                            }
-                        }
-                    } catch (Exception ignore) {}
-                    if (mViewPager != null) mViewPager.setCurrentItem(sortFocused, false);
-                }
-            }
-        }
-    };
+    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
     @Override public boolean dispatchKeyEvent(KeyEvent event) { if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
     @Override protected void onDestroy() { super.onDestroy(); try { EventBus.getDefault().unregister(this); } catch (Exception ignore) {} }
     void showSiteSwitch() {
