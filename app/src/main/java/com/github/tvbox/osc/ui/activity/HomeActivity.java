@@ -753,12 +753,14 @@ private void showPlayerSetting() {
                         put("动漫", "ffzy_hd");
                         put("短剧", "ffzy_hd");
                     }});
+                    // 换回截图那样的二级筛选
                     Hawk.put("DIANYING_8CLASS", "动作片,喜剧片,爱情片,科幻片,恐怖片,剧情片,战争片,伦理片");
-                    Hawk.put("LIANXUJU_7CLASS", "国产剧,香港剧,韩国剧,欧美剧,纪录片,台湾剧,日本剧,短剧");
+                    Hawk.put("LIANXUJU_8CLASS", "国产剧,香港剧,韩国剧,欧美剧,记录片,台湾剧,日本剧,泰国剧");
                     Hawk.put("ZONGYI_4CLASS", "大陆综艺,港台综艺,日韩综艺,欧美综艺");
+                    Hawk.put("DONGMAN_6CLASS", "国产动漫,日韩动漫,欧美动漫,港台动漫,海外动漫,伦理片,短剧");
                     Hawk.put("SHAOER_2CLASS", "国内少儿,国外少儿");
-                    Hawk.put("DONGMAN_6CLASS", "国产动漫,日韩动漫,欧美动漫,港台动漫,海外动漫,国产");
                     Hawk.put("DUANJU_1CLASS", "国内短剧");
+                    Hawk.put("FILTER_STYLE", "old_grid"); // 标记用旧版网格筛选，像截图
                 } catch (Exception ignore) {}
             } catch (Exception ignore) {}
 
@@ -810,11 +812,12 @@ private void showPlayerSetting() {
                 if (found != null) {
                     sd.id = found.id;
                     sd.name = wantName;
+                    try { sd.filters = found.filters; } catch (Exception ignore) {}
+                    try { sd.filter = found.filter; } catch (Exception ignore) {}
                 } else {
-                    // 关键修复：非凡没有少儿/短剧分类时，不用6，用wogg/yangzi真实id
-                    if (wantName.equals("少儿")) sd.id = "4"; // wogg少儿
-                    else if (wantName.equals("动漫")) sd.id = "5"; // wogg动漫
-                    else if (wantName.equals("短剧")) sd.id = "5"; // yangzi短剧 tid 5，国内短剧，避免电影
+                    if (wantName.equals("少儿")) sd.id = "4";
+                    else if (wantName.equals("动漫")) sd.id = "5";
+                    else if (wantName.equals("短剧")) sd.id = "5";
                     else sd.id = wantId;
                     sd.name = wantName;
                 }
@@ -822,7 +825,6 @@ private void showPlayerSetting() {
                 locked.add(sd);
             }
 
-            List<MovieSort.SortData> list = locked;
             try { Hawk.put("LOCKED_SORT_LIST", list); } catch (Exception ignore) {}
 
             sortAdapter.setNewData(list);
