@@ -474,32 +474,36 @@ private void showPlayerSetting() {
 
     private void openHistory() {
         try {
-            // 修复观看历史点了没有记录页面：强制切到最后一个UserFragment（历史）
-            if (sortAdapter != null) {
-                for (int i=0;i<sortAdapter.getData().size();i++) {
-                    MovieSort.SortData sd = sortAdapter.getData().get(i);
-                    if (sd != null && ("my0".equals(sd.id) || (sd.name != null && sd.name.contains("我的")))) {
-                        sortFocused = i;
-                        mHandler.removeCallbacks(mDataRunnable);
-                        mHandler.post(mDataRunnable);
-                        Toast.makeText(this, "已切换到观看历史", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-            }
-            // 如果没找到my0，检查fragments里有没有UserFragment
-            for (int i=0;i<fragments.size();i++) {
-                if (fragments.get(i) instanceof UserFragment) {
-                    sortFocused = i;
+            // 修复观看历史点了不弹到历史记录：直接创建UserFragment，不依赖左边导航的my0
+            // 因为现在左边只有5个清新分类，没有“我的”了，所以要独立弹出
+            UserFragment uf = new UserFragment();
+            // 尝试用弹窗方式显示历史
+            try {
+                androidx.fragment.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.replace(R.id.contentLayout, uf);
+                ft.addToBackStack("history");
+                ft.commitAllowingStateLoss();
+                Toast.makeText(this, "观看历史", Toast.LENGTH_SHORT).show();
+                return;
+            } catch (Exception e1) {
+                // 如果contentLayout替换失败，尝试mViewPager
+                try {
+                    fragments.add(uf);
+                    if (mViewPager.getAdapter() != null) mViewPager.getAdapter().notifyDataSetChanged();
+                    sortFocused = fragments.size() - 1;
                     mHandler.removeCallbacks(mDataRunnable);
                     mHandler.post(mDataRunnable);
-                    Toast.makeText(this, "已切换到观看历史", Toast.LENGTH_SHORT).show();
                     return;
-                }
+                } catch (Exception e2) {}
             }
+            // 兜底：直接跳历史Activity
+            try {
+                jumpActivity(com.github.tvbox.osc.ui.activity.HistoryActivity.class);
+                return;
+            } catch (Exception e3) {}
             Toast.makeText(this, "暂无观看历史", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "打开历史失败", Toast.LENGTH_SHORT).show();
+            try { Toast.makeText(this, "打开历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
         }
     }
 
