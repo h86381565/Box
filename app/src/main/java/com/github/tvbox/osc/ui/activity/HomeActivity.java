@@ -976,6 +976,25 @@ private void showPlayerSetting() {
     }
     private void refreshEmpty() { try { skipNextUpdate=true; showSuccess(); if (sortAdapter!= null) sortAdapter.setNewData(DefaultConfig.adjustSort(ApiConfig.get().getHomeSourceBean().getKey(), new ArrayList<>(), true)); initViewPager(null); if (tvName!= null) tvName.clearAnimation(); } catch (Exception ignore) {} }
     
+
+    @Override protected void onPause() { super.onPause(); try { mHandler.removeCallbacksAndMessages(null); } catch (Exception ignore) {} }
+
+    @org.greenrobot.eventbus.Subscribe(threadMode = org.greenrobot.eventbus.ThreadMode.MAIN)
+    public void refresh(com.github.tvbox.osc.event.RefreshEvent event) {
+        if (event == null) return;
+        if (event.type == com.github.tvbox.osc.event.RefreshEvent.TYPE_PUSH_URL) {
+            try {
+                if (com.github.tvbox.osc.api.ApiConfig.get().getSource("push_agent") != null) {
+                    android.content.Intent newIntent = new android.content.Intent(mContext, com.github.tvbox.osc.ui.activity.DetailActivity.class);
+                    newIntent.putExtra("id", (String) event.obj);
+                    newIntent.putExtra("sourceKey", "push_agent");
+                    newIntent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    HomeActivity.this.startActivity(newIntent);
+                }
+            } catch (Exception ignore) {}
+        }
+    }
+
     private void showFilterIcon(int count) {
         try {
             if (currentView == null) return;
