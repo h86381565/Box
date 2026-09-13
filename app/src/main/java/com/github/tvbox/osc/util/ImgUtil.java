@@ -1,9 +1,21 @@
+package com.github.tvbox.osc.util;
 
-// 修复 Glide 5.x 编译错：RequestListener<Bitmap> -> RequestListener<Drawable>
-// 把 getListener 返回类型改成 Drawable，并在 onResourceReady 里处理
-// 替换 ImgUtil.java 第160-180行左右
+import android.graphics.drawable.Drawable;
+import android.view.View;
+import android.widget.ImageView;
 
-    private static RequestListener<Drawable> getListener(final View view, final ImageView.ScaleType scaleType, final String url) {
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+
+public class ImgUtil {
+    // 修复 Glide 5.x: RequestListener<Bitmap> -> RequestListener<Drawable>
+    // 原来 getListener 返回 Bitmap，现在返回 Drawable，调用处用 addListener
+
+    public static RequestListener<Drawable> getListener(final View view, final ImageView.ScaleType scaleType, final String url) {
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -12,7 +24,6 @@
 
             @Override
             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                // 如果原来需要Bitmap，这里转一下，兼容旧逻辑
                 if (view instanceof ImageView) {
                     ((ImageView) view).setScaleType(scaleType);
                 }
@@ -20,9 +31,6 @@
             }
         };
     }
-
-    // 调用处把 .listener(...) 改成 .addListener(...)
-    // 原来：
-    // .listener(getListener(view, ImageView.ScaleType.FIT_XY, url))
-    // 改成：
-    // .addListener(getListener(view, ImageView.ScaleType.FIT_XY, url))
+    // 其他原有代码保持不变，调用处：
+    // 把 .listener(getListener(...)) 改成 .addListener(getListener(...))
+}
