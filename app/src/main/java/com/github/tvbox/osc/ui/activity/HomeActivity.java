@@ -893,17 +893,14 @@ private void showPlayerSetting() {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
                     MovieSort.SortData real = new MovieSort.SortData();
                     if ("home_latest_2025_2026".equals(data.id)) {
-                        real.id = ""; // 首页推荐 = 今年最近新电视剧、电影
+                        real.id = ""; // 首页推荐 = 最新
                         real.name = data.name;
-                    } else if ("4".equals(data.id) && "少儿".equals(data.name)) {
-                        real.id = "4"; // 少儿 = 国内1-16岁动画片 1-16岁
-                        real.name = "少儿";
-                        // 标记少儿内容，后续可通过搜索关键词过滤
-                        try { Hawk.put("SHAOER_FILTER", "少儿动画 儿童 1-16岁 益智"); } catch (Exception ignore) {}
-                    } else if ("5".equals(data.id)) {
-                        real.id = "5"; // 动漫 = 国产/日韩/欧美/港台/海外动漫 (wogg tid 5)
-                        real.name = "动漫";
-                        try { Hawk.put("DONGMAN_FILTER", "国产动漫 日韩动漫 欧美动漫 港台动漫 海外动漫"); } catch (Exception ignore) {}
+                    } else if (data.id != null && data.id.startsWith("SEARCH_")) {
+                        // 扩展分类（国产剧/大陆综艺等）走搜索，保证有对应数据
+                        String key = data.id.substring(7);
+                        real.id = "SEARCH_" + key;
+                        real.name = data.name;
+                        try { Hawk.put("GRID_SEARCH_" + data.name, key); } catch (Exception ignore) {}
                     } else {
                         real.id = data.id;
                         real.name = data.name;
@@ -911,7 +908,7 @@ private void showPlayerSetting() {
                     fragments.add(GridFragment.newInstance(real));
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
-                try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
+                try { java.lang.reflect.Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
                 if (mViewPager!= null) {
                     mViewPager.setOffscreenPageLimit(7);
                     mViewPager.setPageTransformer(true, new DefaultTransformer());
@@ -921,33 +918,6 @@ private void showPlayerSetting() {
             }
         } catch (Exception ignore) {}
     }
-    @Override public void onBackPressed() {
-        if(isLoading()){ refreshEmpty(); return; }
-        if (this.fragments.size() <= 0 || this.sortFocused >= this.fragments.size() || this.sortFocused < 0) { doExit(); return; }
-        try {
-            BaseLazyFragment b = this.fragments.get(this.sortFocused);
-            if (b instanceof GridFragment) {
-                if (((GridFragment) b).restoreView()) return;
-                if (this.sortFocusView!= null &&!this.sortFocusView.isFocused()) this.sortFocusView.requestFocus();
-                else if (this.sortFocused!= 0) {
-                    sortFocused = 0;
-                    mHandler.removeCallbacks(mDataRunnable);
-                    mHandler.post(mDataRunnable);
-                    try { if (mGridView != null) mGridView.setSelection(0); } catch (Exception ignore) {}
-                    return;
-                } else doExit();
-            } else doExit();
-        } catch (Exception ignore) { doExit(); }
-    }
-    private void doExit() {
-        if (System.currentTimeMillis() - mExitTime < 2000) {
-            AppManager.getInstance().finishAllActivity(); EventBus.getDefault().unregister(this); ControlManager.get().stopServer(); finish(); android.os.Process.killProcess(android.os.Process.myPid()); System.exit(0);
-        } else { mExitTime = System.currentTimeMillis(); Toast.makeText(mContext, getString(R.string.hm_exit), Toast.LENGTH_SHORT).show(); }
-    }
-    @Override protected void onResume() { super.onResume(); mHandler.post(mRunnable); }
-    @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
-    @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
-    private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
     private final Runnable mDataRunnable = new Runnable() {
         @Override public void run() {
             if (sortChange) {
