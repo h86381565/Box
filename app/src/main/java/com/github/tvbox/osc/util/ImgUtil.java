@@ -104,7 +104,7 @@ public class ImgUtil {
             if (roundingRadius == 0) roundingRadius = 1;
             RequestOptions requestOptions = new RequestOptions()
                .format(DecodeFormat.PREFER_RGB_565)
-               .diskCacheStrategy(getDiskCacheStrategy(4))
+               .diskCacheStrategy(DiskCacheStrategy.ALL)
                .dontAnimate()
                .transform(new CenterCrop(), new RoundedCorners(roundingRadius));
             if (newWidth > 0 && newHeight > 0) {
