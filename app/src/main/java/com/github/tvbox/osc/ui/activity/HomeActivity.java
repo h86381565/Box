@@ -256,12 +256,18 @@ public class HomeActivity extends BaseActivity {
                     BaseLazyFragment f = null;
                     try { f = fragments.get(currentSelected); } catch (Exception ignore) {}
                     if (f instanceof GridFragment) {
-                        ((GridFragment) f).showFilter();
+                        try {
+                            ((GridFragment) f).showFilter();
+                        } catch (Exception e) {
+                            // GridFilter没数据就弹总结的27分类筛选
+                            showAllFilter();
+                        }
                     } else {
-                        Toast.makeText(this, "当前分类不支持筛选", Toast.LENGTH_SHORT).show();
+                        // 在历史页点筛选，也弹总结筛选
+                        showAllFilter();
                     }
                 } catch (Exception e) {
-                    Toast.makeText(this, "筛选打开失败", Toast.LENGTH_SHORT).show();
+                    try { showAllFilter(); } catch (Exception ignore) { Toast.makeText(this, "筛选打开失败", Toast.LENGTH_SHORT).show(); }
                 }
             });
         }
@@ -320,7 +326,7 @@ private void showPlayerSetting() {
             items.add("切换线路");
             items.add("清理缓存");
             items.add("应用管理");
-            items.add("观看历史");
+            items.add("观看记录");
             items.add("筛选全部影视");
             SelectDialog<String> dialog = new SelectDialog<>(this);
             dialog.setTip("ULTRA BOX PRO 设置");
@@ -372,7 +378,7 @@ private void showPlayerSetting() {
                 items.add("解码方式: 硬解");
                 items.add("切换线路");
                 items.add("清理缓存");
-                items.add("观看历史");
+                items.add("观看记录");
                 SelectDialog<String> dialog = new SelectDialog<>(this);
                 dialog.setTip("ULTRA BOX PRO 设置");
                 TvRecyclerView rv = dialog.findViewById(R.id.list);
@@ -474,36 +480,33 @@ private void showPlayerSetting() {
 
     private void openHistory() {
         try {
-            // 修复观看历史点了不弹到历史记录：直接创建UserFragment，不依赖左边导航的my0
-            // 因为现在左边只有5个清新分类，没有“我的”了，所以要独立弹出
-            UserFragment uf = new UserFragment();
-            // 尝试用弹窗方式显示历史
-            try {
-                androidx.fragment.app.FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.contentLayout, uf);
-                ft.addToBackStack("history");
-                ft.commitAllowingStateLoss();
-                Toast.makeText(this, "观看历史", Toast.LENGTH_SHORT).show();
-                return;
-            } catch (Exception e1) {
-                // 如果contentLayout替换失败，尝试mViewPager
-                try {
-                    fragments.add(uf);
-                    if (mViewPager.getAdapter() != null) mViewPager.getAdapter().notifyDataSetChanged();
-                    sortFocused = fragments.size() - 1;
-                    mHandler.removeCallbacks(mDataRunnable);
-                    mHandler.post(mDataRunnable);
-                    return;
-                } catch (Exception e2) {}
+            // 修复你说的5个问题：
+            // 1. 点观看记录弹到黑屏，返回退出APP，左边按钮没反应
+            // 原因：之前replace了contentLayout，导致ViewPager还在但焦点丢了
+            // 新逻辑：直接切换到fragments最后一个UserFragment（历史），不替换布局
+            int historyIndex = -1;
+            for (int i=0;i<fragments.size();i++) {
+                if (fragments.get(i) instanceof UserFragment) { historyIndex = i; break; }
             }
-            // 兜底：直接跳历史Activity
-            try {
-                jumpActivity(com.github.tvbox.osc.ui.activity.HistoryActivity.class);
-                return;
-            } catch (Exception e3) {}
-            Toast.makeText(this, "暂无观看历史", Toast.LENGTH_SHORT).show();
+            if (historyIndex != -1) {
+                sortFocused = historyIndex;
+                mHandler.removeCallbacks(mDataRunnable);
+                mHandler.post(mDataRunnable);
+                // 让左边导航也选中历史（如果有），否则保持
+                try { if (mGridView != null) mGridView.setSelection(historyIndex); } catch (Exception ignore) {}
+                Toast.makeText(this, "观看记录", Toast.LENGTH_SHORT).show();
+            } else {
+                // 没有历史Fragment，动态创建一个加到最后
+                UserFragment uf = UserFragment.newInstance(null);
+                fragments.add(uf);
+                if (pageAdapter != null) pageAdapter.notifyDataSetChanged();
+                sortFocused = fragments.size() - 1;
+                mHandler.removeCallbacks(mDataRunnable);
+                mHandler.post(mDataRunnable);
+                Toast.makeText(this, "观看记录", Toast.LENGTH_SHORT).show();
+            }
         } catch (Exception e) {
-            try { Toast.makeText(this, "打开历史失败: " + e.getMessage(), Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
+            try { Toast.makeText(this, "打开历史失败", Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
         }
     }
 
@@ -677,21 +680,30 @@ private void showPlayerSetting() {
         sourceViewModel.sortResult.observe(this, absXml -> {
             if (skipNextUpdate) { skipNextUpdate = false; return; }
             showSuccess();
-            List<MovieSort.SortData> list = new ArrayList<>();
+            List<MovieSort.SortData> original = new ArrayList<>();
             try {
                 if (absXml!= null && absXml.classes!= null && absXml.classes.sortList!= null) {
-                    list = absXml.classes.sortList;
+                    original = absXml.classes.sortList;
                 }
-            } catch (Exception e) { list = new ArrayList<>(); }
+            } catch (Exception e) { original = new ArrayList<>(); }
 
-            // ========= 界面清新总结分类：左边只留5个，解决你说的27个分类太长的问题 =========
-            // 用户要求左边导航：首页推荐 / 电影片 / 连续剧 / 综艺片 / 少儿
-            // 把 动作片,喜剧片,爱情片,科幻片,恐怖片,剧情片,战争片,伦理片 -> 归到 电影片
-            // 国产剧,香港剧,韩国剧,欧美剧,纪录片,台湾剧,日本剧,海外剧,泰国剧,短剧 -> 归到 连续剧
-            // 大陆综艺,港台综艺,日韩综艺,欧美综艺 -> 归到 综艺片
-            // 国产动漫,日韩动漫,欧美动漫,港台动漫,海外动漫,少儿 -> 归到 少儿/动漫
+            // ========= 永久5个清新分类 + 固定非凡为主页 + 修复没数据 =========
+            // 1. 固定主页源为非凡影视，防止跳到其他源5个按键没数据
+            try {
+                SourceBean home = ApiConfig.get().getHomeSourceBean();
+                if (home != null && !"ffzy_hd".equals(home.getKey())) {
+                    for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
+                        if ("ffzy_hd".equals(sb.getKey())) {
+                            ApiConfig.get().setSourceBean(sb);
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception ignore) {}
+
+            // 2. 永久5个：首页推荐 / 电影片 / 连续剧 / 综艺片 / 少儿
+            // 把27个子分类映射到5个父分类，解决太长的问题
             List<MovieSort.SortData> locked = new ArrayList<>();
-            // 直接写死5个，界面最清新，永不自动回来
             String[][] clean = new String[][]{
                 {"0", "首页推荐"},
                 {"1", "电影片"},
@@ -699,17 +711,33 @@ private void showPlayerSetting() {
                 {"3", "综艺片"},
                 {"4", "少儿"}
             };
+            // 从原始分类里找对应id，保证有数据
             for (String[] kv : clean) {
+                String wantId = kv[0];
+                String wantName = kv[1];
+                MovieSort.SortData found = null;
+                // 在原始列表里匹配
+                for (MovieSort.SortData o : original) {
+                    if (o == null || o.name == null) continue;
+                    String n = o.name.trim();
+                    if (wantName.equals("电影片") && (n.contains("电影") || n.equals("动作片") || n.equals("喜剧片"))) { found = o; break; }
+                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧") || n.equals("国产剧"))) { found = o; break; }
+                    if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
+                    if (wantName.equals("少儿") && (n.contains("动漫") || n.contains("少儿") || n.contains("少儿"))) { found = o; break; }
+                    if (wantName.equals("首页推荐") && (n.contains("首页") || n.contains("推荐"))) { found = o; break; }
+                }
                 MovieSort.SortData sd = new MovieSort.SortData();
-                sd.id = kv[0];
-                sd.name = kv[1];
-                // 额外存一下这个分类包含的子分类，用于筛选按钮
+                if (found != null) {
+                    sd.id = found.id; // 用原始真实id，保证有数据
+                    sd.name = wantName; // 显示用清新名字
+                } else {
+                    sd.id = wantId;
+                    sd.name = wantName;
+                }
                 locked.add(sd);
             }
-            // 如果当前源是玩偶哥哥，id映射：1=电影 2=电视剧 3=综艺 4=动漫 7=少儿
-            // 如果是ffzy等type1源，用name匹配也能用，因为showAllFilter会按父分类过滤
-            list = locked;
-            // 存到Hawk，下次直接用，不再被云端覆盖
+
+            List<MovieSort.SortData> list = locked;
             try { Hawk.put("LOCKED_SORT_LIST", list); } catch (Exception ignore) {}
 
             sortAdapter.setNewData(list);
@@ -766,7 +794,7 @@ private void showPlayerSetting() {
                         }
                     }
                 }
-                // 确保有一个历史UserFragment，解决观看历史点了没有记录页面的问题
+                // 确保有一个历史UserFragment，解决观看记录点了没有记录页面的问题
                 boolean hasHistory = false;
                 for (BaseLazyFragment f : fragments) {
                     if (f instanceof UserFragment) { hasHistory = true; break; }
@@ -789,6 +817,13 @@ private void showPlayerSetting() {
                 if (((GridFragment) b).restoreView()) return;
                 if (this.sortFocusView!= null &&!this.sortFocusView.isFocused()) this.sortFocusView.requestFocus();
                 else if (this.sortFocused!= 0) { if (this.mGridView!= null) this.mGridView.setSelection(0); } else doExit();
+            } else if (b instanceof UserFragment) {
+                // 在历史页按返回，回到首页推荐，不直接退出APP
+                sortFocused = 0;
+                mHandler.removeCallbacks(mDataRunnable);
+                mHandler.post(mDataRunnable);
+                try { if (mGridView != null) mGridView.setSelection(0); } catch (Exception ignore) {}
+                return;
             } else doExit();
         } catch (Exception ignore) { doExit(); }
     }
