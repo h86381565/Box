@@ -244,11 +244,33 @@ public class HomeActivity extends BaseActivity {
             });
             tvPlayerSetting.setOnLongClickListener(v -> { try { jumpActivity(SettingActivity.class); } catch (Exception ignore) {} return true; });
         }
-        // 筛选功能不要了，已在xml gone，这里不绑定
-        try {
-            View tvFilter = findViewById(getResources().getIdentifier("tvFilter", "id", getPackageName()));
-            if (tvFilter != null) { tvFilter.setVisibility(View.GONE); }
-        } catch (Exception ignore) {}
+        // 筛选按钮
+        View tvFilter = null;
+        try { tvFilter = findViewById(getResources().getIdentifier("tvFilter", "id", getPackageName())); } catch (Exception ignore) {}
+        if (tvFilter != null) {
+            tvFilter.setFocusable(true);
+            tvFilter.setClickable(true);
+            tvFilter.setOnClickListener(v -> {
+                FastClickCheckUtil.check(v);
+                try {
+                    BaseLazyFragment f = null;
+                    try { f = fragments.get(currentSelected); } catch (Exception ignore) {}
+                    if (f instanceof GridFragment) {
+                        try {
+                            ((GridFragment) f).showFilter();
+                        } catch (Exception e) {
+                            // GridFilter没数据就弹总结的27分类筛选
+                            showAllFilter();
+                        }
+                    } else {
+                        // 在历史页点筛选，也弹总结筛选
+                        showAllFilter();
+                    }
+                } catch (Exception e) {
+                    try { showAllFilter(); } catch (Exception ignore) { Toast.makeText(this, "筛选打开失败", Toast.LENGTH_SHORT).show(); }
+                }
+            });
+        }
         if (tvName!= null) tvName.setOnClickListener(v -> { FastClickCheckUtil.check(v); try { File dir = getCacheDir(); FileUtils.recursiveDelete(dir); dir = getExternalCacheDir(); FileUtils.recursiveDelete(dir); } catch (Exception ignore) {} Toast.makeText(HomeActivity.this, getString(R.string.hm_cache_del), Toast.LENGTH_SHORT).show(); });
         if (tvName!= null) tvName.setOnLongClickListener(v->{ reloadHome(); return true; });
         if (tvDraw!= null) { tvDraw.setFocusable(true); tvDraw.setOnClickListener(v->{ jumpActivity(AppsActivity.class); }); }
@@ -256,34 +278,12 @@ public class HomeActivity extends BaseActivity {
         // 长按系统设置也能调解码器，收费版方便调试
         if (tvMenu!= null) { tvMenu.setOnLongClickListener(v->{ showPlayerSetting(); return true; }); }
         if (tvDate!= null) { tvDate.setFocusable(false); tvDate.setClickable(false); tvDate.setFocusableInTouchMode(false); tvDate.setOnClickListener(null); }
-        // 历史按钮 - 左侧观看记录 + 顶部历史，只留历史
+        // 历史按钮
         if (tvHistory!= null) {
             tvHistory.setFocusable(true);
             tvHistory.setClickable(true);
             tvHistory.setOnClickListener(v -> { FastClickCheckUtil.check(v); openHistory(); });
         }
-        // 顶部历史按钮，只留历史，其他主页/直播/搜索/推送/收藏/设置已在xml gone
-        try {
-            View tvHistoryTop = findViewById(getResources().getIdentifier("tvHistoryTop", "id", getPackageName()));
-            if (tvHistoryTop != null) {
-                tvHistoryTop.setFocusable(true);
-                tvHistoryTop.setClickable(true);
-                tvHistoryTop.setOnClickListener(v -> { FastClickCheckUtil.check(v); openHistory(); });
-            }
-        } catch (Exception ignore) {}
-        // 筛选功能不要了，强制隐藏
-        try {
-            View tvFilter = findViewById(getResources().getIdentifier("tvFilter", "id", getPackageName()));
-            if (tvFilter != null) { tvFilter.setVisibility(View.GONE); tvFilter.setFocusable(false); tvFilter.setClickable(false); tvFilter.setOnClickListener(null); }
-        } catch (Exception ignore) {}
-        try {
-            View tvFind = findViewById(getResources().getIdentifier("tvFind", "id", getPackageName()));
-            if (tvFind != null) { tvFind.setVisibility(View.GONE); }
-        } catch (Exception ignore) {}
-        try {
-            View tvPlayerSetting = findViewById(getResources().getIdentifier("tvPlayerSetting", "id", getPackageName()));
-            if (tvPlayerSetting != null) { tvPlayerSetting.setVisibility(View.GONE); }
-        } catch (Exception ignore) {}
         // 高级导航居中已在布局里通过item居中实现
         try { if (contentLayout!= null) setLoadSir(this.contentLayout); } catch (Exception ignore) {}
         // 隐藏左下角系统设置按钮，收费版只用顶部一个设置
@@ -511,18 +511,34 @@ private void showPlayerSetting() {
             // 换回普通版TVBox历史功能：跳官方HistoryActivity，不是对话框
             // 普通版就是你截图那种：顶部标题 历史记录 + 右上角删除/排序图标，空页面深蓝背景
             try {
-                Intent it = new Intent(this, com.github.tvbox.osc.ui.activity.HistoryActivity.class);
-                startActivity(it);
-                return;
+                Class<?> historyCls = null;
+                try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.HistoryActivity"); } catch (Exception ignore) {}
+                if (historyCls == null) {
+                    try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.RecordActivity"); } catch (Exception ignore) {}
+                }
+                if (historyCls == null) {
+                    try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.VodHistoryActivity"); } catch (Exception ignore) {}
+                }
+                if (historyCls != null) {
+                    Intent it = new Intent(this, historyCls);
+                    startActivity(it);
+                    return;
+                }
             } catch (Exception ignore) {}
+            // 兜底：用action方式调起，普通版TVBox支持
             try {
-                Intent it = new Intent();
-                it.setClassName(this, "com.github.tvbox.osc.ui.activity.HistoryActivity");
-                startActivity(it);
+                Intent intent = new Intent(this, com.github.tvbox.osc.ui.activity.DetailActivity.class);
+                // 如果上面反射没找到，尝试直接用系统HistoryActivity的intent
+                jumpActivity(Class.forName("com.github.tvbox.osc.ui.activity.HistoryActivity"));
                 return;
-            } catch (Exception ignore) {}
+            } catch (Exception e) {
+                // 最后兜底：跳搜索页，用户可以自己看历史
+                jumpActivity(com.github.tvbox.osc.ui.activity.HistoryActivity.class);
+                return;
+            }
         } catch (Exception e) {
             try {
+                // 终极兜底：如果项目里没有HistoryActivity类名，就跳Detail的history模式，至少不弹对话框
                 Toast.makeText(this, "正在打开历史记录...", Toast.LENGTH_SHORT).show();
                 Intent it = new Intent();
                 it.setClassName(this, "com.github.tvbox.osc.ui.activity.HistoryActivity");
@@ -791,6 +807,7 @@ private void showPlayerSetting() {
                     sd.id = found.id;
                     sd.name = wantName;
                     try { sd.filters = found.filters; } catch (Exception ignore) {}
+                    try { sd.filter = found.filter; } catch (Exception ignore) {}
                 } else {
                     if (wantName.equals("少儿")) sd.id = "4";
                     else if (wantName.equals("动漫")) sd.id = "5";
@@ -802,7 +819,6 @@ private void showPlayerSetting() {
                 locked.add(sd);
             }
 
-            List<MovieSort.SortData> list = locked;
             try { Hawk.put("LOCKED_SORT_LIST", list); } catch (Exception ignore) {}
 
             sortAdapter.setNewData(list);
