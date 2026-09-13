@@ -47,7 +47,7 @@ public class GridAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHolder> {
             //由于部分电视机使用glide报错
             if (!TextUtils.isEmpty(item.pic)) {
             	item.pic=item.pic.trim();
-                ImgUtil.load(item.pic, ivThumb, 14);
+                ImgUtil.load(item.pic, ivThumb, 14, ImgUtil.defaultWidth, ImgUtil.defaultHeight);
             } else {
                 ivThumb.setImageResource(R.drawable.img_loading_placeholder);
             }
@@ -94,7 +94,7 @@ public class GridAdapter extends BaseQuickAdapter<Movie.Video, BaseViewHolder> {
         }
         //由于部分电视机使用glide报错
         if (!TextUtils.isEmpty(item.pic)) {
-            ImgUtil.load(item.pic, ivThumb, 14);
+            ImgUtil.load(item.pic, ivThumb, 14, ImgUtil.defaultWidth, ImgUtil.defaultHeight);
         } else {
             
             ivThumb.setImageResource(R.drawable.img_loading_placeholder);
