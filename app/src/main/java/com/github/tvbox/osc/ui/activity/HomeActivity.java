@@ -701,39 +701,47 @@ private void showPlayerSetting() {
                 }
             } catch (Exception ignore) {}
 
-            // 2. 永久5个：首页推荐 / 电影片 / 连续剧 / 综艺片 / 少儿
-            // 把27个子分类映射到5个父分类，解决太长的问题
+            // 2. 永久6个：首页推荐(今年最近新电视剧、电影) / 电影片 / 连续剧 / 综艺片 / 少儿/动漫 / 动漫
+            // 修复：首页推荐只推2025-2026最新，其他5个都有数据
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
-                {"0", "首页推荐"},
+                {"", "首页推荐"},
                 {"1", "电影片"},
                 {"2", "连续剧"},
                 {"3", "综艺片"},
-                {"4", "少儿"}
+                {"4", "少儿/动漫"},
+                {"4", "动漫"}
             };
-            // 从原始分类里找对应id，保证有数据
-            for (String[] kv : clean) {
+            for (int idx=0; idx<clean.length; idx++) {
+                String[] kv = clean[idx];
                 String wantId = kv[0];
                 String wantName = kv[1];
                 MovieSort.SortData found = null;
-                // 在原始列表里匹配
                 for (MovieSort.SortData o : original) {
                     if (o == null || o.name == null) continue;
                     String n = o.name.trim();
-                    if (wantName.equals("电影片") && (n.contains("电影") || n.equals("动作片") || n.equals("喜剧片"))) { found = o; break; }
-                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧") || n.equals("国产剧"))) { found = o; break; }
+                    if (wantName.equals("电影片") && n.contains("电影")) { found = o; break; }
+                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
                     if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
-                    if (wantName.equals("少儿") && (n.contains("动漫") || n.contains("少儿") || n.contains("少儿"))) { found = o; break; }
-                    if (wantName.equals("首页推荐") && (n.contains("首页") || n.contains("推荐"))) { found = o; break; }
+                    if (wantName.equals("少儿/动漫") && (n.contains("少儿") || n.contains("动漫"))) { found = o; break; }
+                    if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
+                    if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
                 }
                 MovieSort.SortData sd = new MovieSort.SortData();
                 if (found != null) {
-                    sd.id = found.id; // 用原始真实id，保证有数据
-                    sd.name = wantName; // 显示用清新名字
+                    sd.id = found.id;
+                    sd.name = wantName;
                 } else {
                     sd.id = wantId;
                     sd.name = wantName;
                 }
+                // 强制修正：非凡影视固定tid
+                if (wantName.equals("电影片")) sd.id = "1";
+                else if (wantName.equals("连续剧")) sd.id = "2";
+                else if (wantName.equals("综艺片")) sd.id = "3";
+                else if (wantName.equals("少儿/动漫")) sd.id = "4";
+                else if (wantName.equals("动漫")) sd.id = "4"; // 动漫和少儿共用tid=4，非凡里动漫就是少儿
+                else if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
                 locked.add(sd);
             }
 
@@ -784,27 +792,35 @@ private void showPlayerSetting() {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    if ("live".equals(data.id)) {
-                        fragments.add(UserFragment.newInstance(null));
+                    // 首页推荐特殊处理：今年最近上的新电视剧、电影，名字保持首页推荐不变
+                    if ("home_latest_2025_2026".equals(data.id) && "首页推荐".equals(data.name)) {
+                        MovieSort.SortData latest = new MovieSort.SortData();
+                        latest.id = ""; // 空id加载最新，配合年份过滤
+                        latest.name = data.name;
+                        try { Hawk.put("HOME_LATEST_YEAR", "2025,2026"); Hawk.put("HOME_LATEST_ONLY_MOVIE_TV", true); } catch (Exception ignore) {}
+                        fragments.add(GridFragment.newInstance(latest));
                     } else {
-                        if ("my0".equals(data.id) && data.name!=null && data.name.contains("我的")) {
-                            fragments.add(UserFragment.newInstance(null));
-                        } else {
-                            fragments.add(GridFragment.newInstance(data));
-                        }
+                        fragments.add(GridFragment.newInstance(data));
                     }
-                }
-                // 确保有一个历史UserFragment，解决观看记录点了没有记录页面的问题
-                boolean hasHistory = false;
-                for (BaseLazyFragment f : fragments) {
-                    if (f instanceof UserFragment) { hasHistory = true; break; }
-                }
-                if (!hasHistory) {
-                    fragments.add(UserFragment.newInstance(null));
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
-                if (mViewPager!= null) { mViewPager.setPageTransformer(true, new DefaultTransformer()); mViewPager.setAdapter(pageAdapter); mViewPager.setCurrentItem(currentSelected, false); }
+                if (mViewPager!= null) {
+                    mViewPager.setOffscreenPageLimit(6); // 预加载6个，6个分类都有数据
+                    mViewPager.setPageTransformer(true, new DefaultTransformer());
+                    mViewPager.setAdapter(pageAdapter);
+                    mViewPager.setCurrentItem(currentSelected, false);
+                    // 首页推荐自动应用今年最新年份过滤：2025-2026新电视剧、电影
+                    mHandler.postDelayed(() -> {
+                        try {
+                            if (fragments.size() > 0 && fragments.get(0) instanceof GridFragment) {
+                                GridFragment gf = (GridFragment) fragments.get(0);
+                                try { gf.setFilter("2026"); } catch (Exception ignore) {}
+                                try { gf.setFilter("2025"); } catch (Exception ignore) {}
+                            }
+                        } catch (Exception ignore) {}
+                    }, 800);
+                }
             }
         } catch (Exception ignore) {}
     }
@@ -816,14 +832,13 @@ private void showPlayerSetting() {
             if (b instanceof GridFragment) {
                 if (((GridFragment) b).restoreView()) return;
                 if (this.sortFocusView!= null &&!this.sortFocusView.isFocused()) this.sortFocusView.requestFocus();
-                else if (this.sortFocused!= 0) { if (this.mGridView!= null) this.mGridView.setSelection(0); } else doExit();
-            } else if (b instanceof UserFragment) {
-                // 在历史页按返回，回到首页推荐，不直接退出APP
-                sortFocused = 0;
-                mHandler.removeCallbacks(mDataRunnable);
-                mHandler.post(mDataRunnable);
-                try { if (mGridView != null) mGridView.setSelection(0); } catch (Exception ignore) {}
-                return;
+                else if (this.sortFocused!= 0) {
+                    sortFocused = 0;
+                    mHandler.removeCallbacks(mDataRunnable);
+                    mHandler.post(mDataRunnable);
+                    try { if (mGridView != null) mGridView.setSelection(0); } catch (Exception ignore) {}
+                    return;
+                } else doExit();
             } else doExit();
         } catch (Exception ignore) { doExit(); }
     }
