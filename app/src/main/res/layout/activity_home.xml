@@ -20,8 +20,8 @@
         </LinearLayout>
 
         <LinearLayout android:id="@+id/tvHistory" android:orientation="horizontal" android:gravity="center" android:focusable="true" android:clickable="true" android:background="@drawable/bg_vip_pro" android:padding="10dp" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="36dp">
-            <TextView android:text="▶" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:text="观看历史" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:text="↻" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:text="历史" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <com.owen.tvrecyclerview.widget.TvRecyclerView android:id="@+id/mGridViewCategory" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="18dp" android:clipChildren="false" android:clipToPadding="false"/>
@@ -46,10 +46,7 @@
                 <TextView android:text="设置" android:textColor="#FFD76D" android:textSize="10sp" android:layout_marginStart="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/tvFilter" android:orientation="horizontal" android:gravity="center_vertical" android:focusable="true" android:clickable="true" android:background="@drawable/bg_pill_dark" android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="28dp">
-                <TextView android:text="☰" android:textColor="#FFD76D" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                <TextView android:text="筛选" android:textColor="#FFD76D" android:textSize="10sp" android:layout_marginStart="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </LinearLayout>
+            <View android:id="@+id/tvFilter" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
 
             <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:orientation="horizontal">
                 <TextView android:id="@+id/tvDate" android:text="09月12日 | 周六 17:23" android:textColor="#7A7E94" android:textSize="11sp" android:letterSpacing="0.02" android:focusable="false" android:clickable="false" android:background="@null" android:gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
