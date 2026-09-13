@@ -13,7 +13,6 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.github.tvbox.osc.R;
-import com.github.tvbox.osc.base.App;
 
 public class ImgUtil {
     public static int defaultWidth = 300;
@@ -23,6 +22,7 @@ public class ImgUtil {
         public float ratio = 1.5f;
         public int width = defaultWidth;
         public int height = defaultHeight;
+        public String type = "grid"; // 兼容 GridAdapter style.type
     }
 
     public static Style initStyle() {
@@ -30,7 +30,24 @@ public class ImgUtil {
         style.ratio = 0.75f;
         style.width = defaultWidth;
         style.height = defaultHeight;
+        style.type = "grid";
         return style;
+    }
+
+    public static int getStyleDefaultWidth(Style style) {
+        if (style != null && style.width > 0) return style.width;
+        return defaultWidth;
+    }
+
+    public static int spanCountByStyle(Style style, int spanCount) {
+        try {
+            if (style == null) return spanCount;
+            if ("list".equals(style.type)) return 1;
+            if (style.width > 0 && style.width < 200) return spanCount + 1;
+            return spanCount;
+        } catch (Exception e) {
+            return spanCount;
+        }
     }
 
     public static void load(String url, ImageView view, int radius) {
@@ -47,11 +64,13 @@ public class ImgUtil {
             if (width > 0 && height > 0) {
                 options = options.override(width, height);
             }
+            // 兼容 bg_black 不存在，直接用 bg_card_dark 兜底，避免编译找不到符号
+            int placeholder = R.drawable.bg_card_dark;
             Glide.with(view.getContext())
                     .load(url)
                     .apply(options)
-                    .placeholder(R.drawable.bg_black)
-                    .error(R.drawable.bg_black)
+                    .placeholder(placeholder)
+                    .error(placeholder)
                     .addListener(getListener(view, ImageView.ScaleType.FIT_XY, url))
                     .into(view);
         } catch (Exception e) {
@@ -59,14 +78,13 @@ public class ImgUtil {
         }
     }
 
-    // 修复 Glide 5.x 编译：RequestListener<Bitmap> -> RequestListener<Drawable>，用 addListener
+    // 修复 Glide 5.x：Bitmap -> Drawable，用 addListener
     public static RequestListener<Drawable> getListener(final View view, final ImageView.ScaleType scaleType, final String url) {
         return new RequestListener<Drawable>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                 return false;
             }
-
             @Override
             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                 if (view instanceof ImageView) {
