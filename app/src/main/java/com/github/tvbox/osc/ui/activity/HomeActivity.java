@@ -761,86 +761,84 @@ private void showPlayerSetting() {
             // 动漫=国产/日韩/欧美/港台/海外动漫 (tid 4/5)
             // 短剧=国内短剧 (tid 6/短剧)
             List<MovieSort.SortData> locked = new ArrayList<>();
-            // 恢复成这样的导航 - 按你4张截图：图1动漫片/动作片... 图2国产剧... 图3泰国剧... 图4欧美综艺...
+            // 修复：首页推荐有数据，电影片以下空 = tid映射错。非凡真实tid：1电影 2连续剧 3综艺 4动漫 5? 6动作 7喜剧 8爱情 9科幻 10恐怖 11剧情 12战争 13伦理 20国产剧 21香港 22韩国 23欧美 24记录 25台湾 26日本 27海外 28泰国 29大陆综艺 30港台综艺 31日韩综艺 32欧美综艺 33国产动漫 34日韩动漫 35欧美动漫 36港台动漫 37海外动漫 38短剧
+            // 为了兼容所有源，这里用wantId就是真实tid，found只用来拿filters，不覆盖id
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
                 {"1", "电影片"},
+                {"6", "动作片"},
+                {"7", "喜剧片"},
+                {"8", "爱情片"},
+                {"9", "科幻片"},
+                {"10", "恐怖片"},
+                {"11", "剧情片"},
+                {"12", "战争片"},
+                {"13", "伦理片"},
                 {"2", "连续剧"},
+                {"20", "国产剧"},
+                {"21", "香港剧"},
+                {"22", "韩国剧"},
+                {"23", "欧美剧"},
+                {"24", "记录片"},
+                {"25", "台湾剧"},
+                {"26", "日本剧"},
+                {"27", "海外剧"},
+                {"28", "泰国剧"},
                 {"3", "综艺片"},
-                {"5", "动漫片"},
-                // 图1：动作片/喜剧片/爱情片/科幻片/恐怖片/剧情片/战争片
-                {"1", "动作片"},
-                {"1", "喜剧片"},
-                {"1", "爱情片"},
-                {"1", "科幻片"},
-                {"1", "恐怖片"},
-                {"1", "剧情片"},
-                {"1", "战争片"},
-                // 图2：国产剧/香港剧/韩国剧/欧美剧/记录片/台湾剧/日本剧/海外剧
-                {"2", "国产剧"},
-                {"2", "香港剧"},
-                {"2", "韩国剧"},
-                {"2", "欧美剧"},
-                {"2", "记录片"},
-                {"2", "台湾剧"},
-                {"2", "日本剧"},
-                {"2", "海外剧"},
-                // 图3+图4：泰国剧/大陆综艺/港台综艺/日韩综艺/欧美综艺/国产动漫/日韩动漫/欧美动漫/港台动漫/海外动漫/伦理片/短剧
-                {"2", "泰国剧"},
-                {"3", "大陆综艺"},
-                {"3", "港台综艺"},
-                {"3", "日韩综艺"},
-                {"3", "欧美综艺"},
-                {"5", "国产动漫"},
-                {"5", "日韩动漫"},
-                {"5", "欧美动漫"},
-                {"5", "港台动漫"},
-                {"5", "海外动漫"},
-                {"1", "伦理片"},
-                {"6", "短剧"},
-                {"4", "少儿"}
+                {"29", "大陆综艺"},
+                {"30", "港台综艺"},
+                {"31", "日韩综艺"},
+                {"32", "欧美综艺"},
+                {"4", "动漫片"},
+                {"33", "国产动漫"},
+                {"34", "日韩动漫"},
+                {"35", "欧美动漫"},
+                {"36", "港台动漫"},
+                {"37", "海外动漫"},
+                {"38", "短剧"},
+                {"39", "少儿"}
             };
             for (int idx=0; idx<clean.length; idx++) {
                 String[] kv = clean[idx];
                 String wantId = kv[0];
                 String wantName = kv[1];
                 MovieSort.SortData found = null;
+                // 找原始分类里对应的主分类，用来继承filters
                 for (MovieSort.SortData o : original) {
                     if (o == null || o.name == null) continue;
                     String n = o.name.trim();
                     if (wantName.equals("电影片") && (n.contains("电影") || n.equals("电影片"))) { found = o; break; }
                     if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
-                    if (wantName.equals("综艺片") && (n.contains("综艺") || n.equals("综艺片"))) { found = o; break; }
+                    if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
                     if (wantName.equals("动漫片") && n.contains("动漫")) { found = o; break; }
-                    if (wantName.equals("少儿") && n.contains("少儿")) { found = o; break; }
-                    if (wantName.equals("短剧") && n.contains("短剧")) { found = o; break; }
-                    // 子分类全部用主分类的真实id，靠filter区分
-                    if (wantName.equals("动作片") || wantName.equals("喜剧片") || wantName.equals("爱情片") || wantName.equals("科幻片") || wantName.equals("恐怖片") || wantName.equals("剧情片") || wantName.equals("战争片") || wantName.equals("伦理片")) {
-                        if (n.contains("电影")) { found = o; break; }
-                    }
-                    if (wantName.equals("国产剧") || wantName.equals("香港剧") || wantName.equals("韩国剧") || wantName.equals("欧美剧") || wantName.equals("记录片") || wantName.equals("台湾剧") || wantName.equals("日本剧") || wantName.equals("海外剧") || wantName.equals("泰国剧")) {
-                        if (n.contains("连续剧") || n.contains("电视剧")) { found = o; break; }
-                    }
-                    if (wantName.equals("大陆综艺") || wantName.equals("港台综艺") || wantName.equals("日韩综艺") || wantName.equals("欧美综艺")) {
-                        if (n.contains("综艺")) { found = o; break; }
-                    }
-                    if (wantName.equals("国产动漫") || wantName.equals("日韩动漫") || wantName.equals("欧美动漫") || wantName.equals("港台动漫") || wantName.equals("海外动漫")) {
-                        if (n.contains("动漫")) { found = o; break; }
-                    }
                     if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
                 }
-                MovieSort.SortData sd = new MovieSort.SortData();
-                if (found != null) {
-                    sd.id = found.id;
-                    sd.name = wantName;
-                    try { sd.filters = found.filters; } catch (Exception ignore) {}
-                } else {
-                    sd.id = wantId;
-                    sd.name = wantName;
+                // 子分类也找主分类的filters
+                if (found == null) {
+                    for (MovieSort.SortData o : original) {
+                        if (o == null || o.name == null) continue;
+                        String n = o.name.trim();
+                        if (wantName.equals("动作片") || wantName.equals("喜剧片") || wantName.equals("爱情片") || wantName.equals("科幻片") || wantName.equals("恐怖片") || wantName.equals("剧情片") || wantName.equals("战争片") || wantName.equals("伦理片")) {
+                            if (n.contains("电影")) { found = o; break; }
+                        }
+                        if (wantName.contains("剧") && !wantName.contains("综艺") && !wantName.contains("动漫")) {
+                            if (n.contains("连续剧") || n.contains("电视剧")) { found = o; break; }
+                        }
+                        if (wantName.contains("综艺")) {
+                            if (n.contains("综艺")) { found = o; break; }
+                        }
+                        if (wantName.contains("动漫") && !wantName.equals("动漫片")) {
+                            if (n.contains("动漫")) { found = o; break; }
+                        }
+                    }
                 }
+                MovieSort.SortData sd = new MovieSort.SortData();
+                sd.id = wantId; // 关键：直接用真实tid，不再用found.id覆盖，否则电影片以下全空
+                sd.name = wantName;
+                try { if (found != null) sd.filters = found.filters; } catch (Exception ignore) {}
                 if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
-                // 记录filter
-                try { if (!wantName.equals("首页推荐") && !wantName.equals("电影片") && !wantName.equals("连续剧") && !wantName.equals("综艺片") && !wantName.equals("动漫片")) Hawk.put("FILTER_" + wantName, wantName); } catch (Exception ignore) {}
+                // 保存过滤标记，兼容旧逻辑
+                try { if (!wantId.isEmpty()) Hawk.put("FILTER_" + wantName, wantName); } catch (Exception ignore) {}
                 locked.add(sd);
             }
 
