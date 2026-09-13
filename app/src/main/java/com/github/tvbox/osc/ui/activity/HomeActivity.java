@@ -746,15 +746,15 @@ private void showPlayerSetting() {
                 }
             } catch (Exception ignore) {}
 
-            // 2. 永久6个：首页推荐(今年最近新电视剧、电影) / 电影片 / 连续剧 / 综艺片 / 少儿/动漫 / 动漫
-            // 修复：首页推荐只推2025-2026最新，其他5个都有数据
+            // 2. 永久6个：首页推荐(今年最近新电视剧、电影) / 电影片 / 连续剧 / 综艺片 / 少儿 / 动漫
+            // 少儿选项名称就叫少儿，内容为少儿节目动画片
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
                 {"1", "电影片"},
                 {"2", "连续剧"},
                 {"3", "综艺片"},
-                {"4", "少儿/动漫"},
+                {"4", "少儿"},
                 {"4", "动漫"}
             };
             for (int idx=0; idx<clean.length; idx++) {
@@ -768,7 +768,7 @@ private void showPlayerSetting() {
                     if (wantName.equals("电影片") && n.contains("电影")) { found = o; break; }
                     if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
                     if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
-                    if (wantName.equals("少儿/动漫") && (n.contains("少儿") || n.contains("动漫"))) { found = o; break; }
+                    if (wantName.equals("少儿") && (n.contains("少儿") || n.contains("动漫"))) { found = o; break; }
                     if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
                     if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
                 }
