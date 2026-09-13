@@ -772,6 +772,14 @@ private void showPlayerSetting() {
             // 短剧(6)=国内短剧
             // 修复：电影片/连续剧等找不到数据，电影数据跑到短剧，因为写死了1-6，非凡真实tid不是1-6
             // 改为从接口返回的original里按名字匹配真实id
+            // 2. 永久7个全部非凡影视，使用接口返回的真实tid，解决电影数据跑到短剧，没找到数据
+            // 首页推荐("")=今年最近新电视剧、电影
+            // 电影片=动作片/喜剧片/爱情片/科幻片/恐怖片/剧情片/战争片/伦理片 (ffzy tid 1)
+            // 连续剧=国产剧/香港剧/韩国剧/欧美剧/纪录片/台湾剧/日本剧 (tid 2)
+            // 综艺片=大陆综艺/港台综艺/日韩综艺/欧美综艺 (tid 3)
+            // 少儿=国内少儿/国外少儿 (tid 4/29)
+            // 动漫=国产/日韩/欧美/港台/海外动漫 (tid 4/5)
+            // 短剧=国内短剧 (tid 6/短剧)
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
@@ -790,9 +798,9 @@ private void showPlayerSetting() {
                 for (MovieSort.SortData o : original) {
                     if (o == null || o.name == null) continue;
                     String n = o.name.trim();
-                    if (wantName.equals("电影片") && n.contains("电影")) { found = o; break; }
+                    if (wantName.equals("电影片") && (n.contains("电影") || n.equals("电影片"))) { found = o; break; }
                     if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
-                    if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
+                    if (wantName.equals("综艺片") && (n.contains("综艺") || n.equals("综艺片"))) { found = o; break; }
                     if (wantName.equals("少儿") && n.contains("少儿")) { found = o; break; }
                     if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
                     if (wantName.equals("短剧") && n.contains("短剧")) { found = o; break; }
@@ -800,14 +808,13 @@ private void showPlayerSetting() {
                 }
                 MovieSort.SortData sd = new MovieSort.SortData();
                 if (found != null) {
-                    sd.id = found.id; // 使用非凡真实tid，避免电影数据跑到短剧
+                    sd.id = found.id; // 关键：用非凡真实id，不是写死的1-6
                     sd.name = wantName;
                 } else {
                     sd.id = wantId;
                     sd.name = wantName;
                 }
                 if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
-                // 如果没匹配到，保留原始wantId作为兜底，但不再强制写死1-6
                 locked.add(sd);
             }
 
@@ -915,46 +922,7 @@ private void showPlayerSetting() {
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
     @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
     private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
-    private final Runnable mDataRunnable = new Runnable() { 
-        @Override public void run() { 
-            if (sortChange) { 
-                sortChange = false; 
-                if (sortFocused!= currentSelected) { 
-                    currentSelected = sortFocused; 
-                    // 少儿和动漫用wogg源区分内容，避免资源一样
-                    try {
-                        String catName = "";
-                        if (sortAdapter != null && sortFocused < sortAdapter.getData().size()) {
-                            catName = sortAdapter.getData().get(sortFocused).name;
-                        }
-                        if ("少儿".equals(catName) || "动漫".equals(catName)) {
-                            // 少儿=国内1-16岁动画片，动漫=国产/日韩/欧美/港台/海外动漫，用wogg区分
-                            for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
-                                if ("wogg_4k".equals(sb.getKey())) {
-                                    if (!sb.getKey().equals(ApiConfig.get().getHomeSourceBean().getKey())) {
-                                        ApiConfig.get().setSourceBean(sb);
-                                        // 不重载全部，只切源，GridFragment会用新源加载
-                                    }
-                                    break;
-                                }
-                            }
-                        } else {
-                            // 其他分类用非凡影视
-                            for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
-                                if ("ffzy_hd".equals(sb.getKey())) {
-                                    if (!sb.getKey().equals(ApiConfig.get().getHomeSourceBean().getKey())) {
-                                        ApiConfig.get().setSourceBean(sb);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (Exception ignore) {}
-                    if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); 
-                } 
-            } 
-        } 
-    };
+    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; try { for (SourceBean sb : ApiConfig.get().getSourceBeanList()) { if ("ffzy_hd".equals(sb.getKey())) { ApiConfig.get().setSourceBean(sb); break; } } } catch (Exception ignore) {} if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
     @Override public boolean dispatchKeyEvent(KeyEvent event) { if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
     @Override protected void onDestroy() { super.onDestroy(); try { EventBus.getDefault().unregister(this); } catch (Exception ignore) {} }
     void showSiteSwitch() {
