@@ -732,7 +732,7 @@ private void showPlayerSetting() {
                 }
             } catch (Exception e) { original = new ArrayList<>(); }
 
-            // ========= 固定非凡为主页，但少儿/动漫允许用玩偶哥哥区分内容 =========
+            // ========= 固定非凡影视为主页，7大类全部读取非凡影视 =========
             try {
                 SourceBean home = ApiConfig.get().getHomeSourceBean();
                 if (home == null || !"ffzy_hd".equals(home.getKey())) {
@@ -743,22 +743,33 @@ private void showPlayerSetting() {
                         }
                     }
                 }
-                // 保存各分类对应源，少儿用wogg区分1-16岁，动漫用ffzy区分全类
                 try {
                     Hawk.put("CATEGORY_SOURCE", new java.util.HashMap<String, String>() {{
                         put("首页推荐", "ffzy_hd");
                         put("电影片", "ffzy_hd");
                         put("连续剧", "ffzy_hd");
                         put("综艺片", "ffzy_hd");
-                        put("少儿", "wogg_4k"); // 少儿节目动画片 1-16岁
-                        put("动漫", "wogg_4k"); // 动漫专栏：国产/日韩/欧美/港台/海外
+                        put("少儿", "ffzy_hd");
+                        put("动漫", "ffzy_hd");
+                        put("短剧", "ffzy_hd");
                     }});
+                    Hawk.put("DIANYING_8CLASS", "动作片,喜剧片,爱情片,科幻片,恐怖片,剧情片,战争片,伦理片");
+                    Hawk.put("LIANXUJU_7CLASS", "国产剧,香港剧,韩国剧,欧美剧,纪录片,台湾剧,日本剧,短剧");
+                    Hawk.put("ZONGYI_4CLASS", "大陆综艺,港台综艺,日韩综艺,欧美综艺");
+                    Hawk.put("SHAOER_2CLASS", "国内少儿,国外少儿");
+                    Hawk.put("DONGMAN_6CLASS", "国产动漫,日韩动漫,欧美动漫,港台动漫,海外动漫,国产");
+                    Hawk.put("DUANJU_1CLASS", "国内短剧");
                 } catch (Exception ignore) {}
             } catch (Exception ignore) {}
 
-            // 2. 永久6个：首页推荐(今年最近新电视剧、电影) / 电影片 / 连续剧 / 综艺片 / 少儿 / 动漫
-            // 少儿选项名称就叫少儿，内容为少儿节目动画片
-            // 6个分类：首页推荐(今年最近新剧电影) / 电影片 / 连续剧 / 综艺片 / 少儿(1-16岁动画) / 动漫(国产/日韩/欧美/港台/海外)
+            // 2. 永久7个全部非凡影视：
+            // 首页推荐("")=今年最近新电视剧、电影
+            // 电影片(1)=动作片/喜剧片/爱情片/科幻片/恐怖片/剧情片/战争片/伦理片
+            // 连续剧(2)=国产剧/香港剧/韩国剧/欧美剧/纪录片/台湾剧/日本剧
+            // 综艺片(3)=大陆综艺/港台综艺/日韩综艺/欧美综艺
+            // 少儿(4)=国内少儿/国外少儿
+            // 动漫(5)=国产/日韩/欧美/港台/海外动漫
+            // 短剧(6)=国内短剧
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
@@ -766,7 +777,8 @@ private void showPlayerSetting() {
                 {"2", "连续剧"},
                 {"3", "综艺片"},
                 {"4", "少儿"},
-                {"5", "动漫"}
+                {"5", "动漫"},
+                {"6", "短剧"}
             };
             for (int idx=0; idx<clean.length; idx++) {
                 String[] kv = clean[idx];
@@ -775,12 +787,12 @@ private void showPlayerSetting() {
                 MovieSort.SortData sd = new MovieSort.SortData();
                 sd.id = wantId;
                 sd.name = wantName;
-                // 强制修正tid和内容区分
                 if (wantName.equals("电影片")) sd.id = "1";
                 else if (wantName.equals("连续剧")) sd.id = "2";
                 else if (wantName.equals("综艺片")) sd.id = "3";
-                else if (wantName.equals("少儿")) sd.id = "4_shaoer"; // 标记少儿1-16岁动画片
-                else if (wantName.equals("动漫")) sd.id = "4_dongman"; // 标记动漫全类：国产/日韩/欧美/港台/海外
+                else if (wantName.equals("少儿")) sd.id = "4";
+                else if (wantName.equals("动漫")) sd.id = "5";
+                else if (wantName.equals("短剧")) sd.id = "6";
                 else if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
                 locked.add(sd);
             }
@@ -854,7 +866,7 @@ private void showPlayerSetting() {
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
                 if (mViewPager!= null) {
-                    mViewPager.setOffscreenPageLimit(6);
+                    mViewPager.setOffscreenPageLimit(7);
                     mViewPager.setPageTransformer(true, new DefaultTransformer());
                     mViewPager.setAdapter(pageAdapter);
                     mViewPager.setCurrentItem(currentSelected, false);
