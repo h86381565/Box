@@ -808,10 +808,14 @@ private void showPlayerSetting() {
                 }
                 MovieSort.SortData sd = new MovieSort.SortData();
                 if (found != null) {
-                    sd.id = found.id; // 关键：用非凡真实id，不是写死的1-6
+                    sd.id = found.id;
                     sd.name = wantName;
                 } else {
-                    sd.id = wantId;
+                    // 关键修复：非凡没有少儿/短剧分类时，不用6，用wogg/yangzi真实id
+                    if (wantName.equals("少儿")) sd.id = "4"; // wogg少儿
+                    else if (wantName.equals("动漫")) sd.id = "5"; // wogg动漫
+                    else if (wantName.equals("短剧")) sd.id = "5"; // yangzi短剧 tid 5，国内短剧，避免电影
+                    else sd.id = wantId;
                     sd.name = wantName;
                 }
                 if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
@@ -922,7 +926,7 @@ private void showPlayerSetting() {
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
     @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
     private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
-    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; try { for (SourceBean sb : ApiConfig.get().getSourceBeanList()) { if ("ffzy_hd".equals(sb.getKey())) { ApiConfig.get().setSourceBean(sb); break; } } } catch (Exception ignore) {} if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
+    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; try { String catName=""; if (sortAdapter!=null && sortFocused < sortAdapter.getData().size()) catName=sortAdapter.getData().get(sortFocused).name; String target="ffzy_hd"; if ("少儿".equals(catName)) target="wogg_4k"; else if ("动漫".equals(catName)) target="wogg_4k"; else if ("短剧".equals(catName)) target="yangzi"; // 短剧用阳仔，国内短剧分类明确，避免wogg短剧返回电影 for (SourceBean sb : ApiConfig.get().getSourceBeanList()) { if (target.equals(sb.getKey())) { ApiConfig.get().setSourceBean(sb); break; } } } catch (Exception ignore) {} if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
     @Override public boolean dispatchKeyEvent(KeyEvent event) { if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
     @Override protected void onDestroy() { super.onDestroy(); try { EventBus.getDefault().unregister(this); } catch (Exception ignore) {} }
     void showSiteSwitch() {
