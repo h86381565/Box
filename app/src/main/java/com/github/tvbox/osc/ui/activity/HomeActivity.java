@@ -732,11 +732,10 @@ private void showPlayerSetting() {
                 }
             } catch (Exception e) { original = new ArrayList<>(); }
 
-            // ========= 永久5个清新分类 + 固定非凡为主页 + 修复没数据 =========
-            // 1. 固定主页源为非凡影视，防止跳到其他源5个按键没数据
+            // ========= 固定非凡为主页，但少儿/动漫允许用玩偶哥哥区分内容 =========
             try {
                 SourceBean home = ApiConfig.get().getHomeSourceBean();
-                if (home != null && !"ffzy_hd".equals(home.getKey())) {
+                if (home == null || !"ffzy_hd".equals(home.getKey())) {
                     for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
                         if ("ffzy_hd".equals(sb.getKey())) {
                             ApiConfig.get().setSourceBean(sb);
@@ -744,10 +743,22 @@ private void showPlayerSetting() {
                         }
                     }
                 }
+                // 保存各分类对应源，少儿用wogg区分1-16岁，动漫用ffzy区分全类
+                try {
+                    Hawk.put("CATEGORY_SOURCE", new java.util.HashMap<String, String>() {{
+                        put("首页推荐", "ffzy_hd");
+                        put("电影片", "ffzy_hd");
+                        put("连续剧", "ffzy_hd");
+                        put("综艺片", "ffzy_hd");
+                        put("少儿", "wogg_4k"); // 少儿节目动画片 1-16岁
+                        put("动漫", "wogg_4k"); // 动漫专栏：国产/日韩/欧美/港台/海外
+                    }});
+                } catch (Exception ignore) {}
             } catch (Exception ignore) {}
 
             // 2. 永久6个：首页推荐(今年最近新电视剧、电影) / 电影片 / 连续剧 / 综艺片 / 少儿 / 动漫
             // 少儿选项名称就叫少儿，内容为少儿节目动画片
+            // 6个分类：首页推荐(今年最近新剧电影) / 电影片 / 连续剧 / 综艺片 / 少儿(1-16岁动画) / 动漫(国产/日韩/欧美/港台/海外)
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
@@ -755,37 +766,21 @@ private void showPlayerSetting() {
                 {"2", "连续剧"},
                 {"3", "综艺片"},
                 {"4", "少儿"},
-                {"4", "动漫"}
+                {"5", "动漫"}
             };
             for (int idx=0; idx<clean.length; idx++) {
                 String[] kv = clean[idx];
                 String wantId = kv[0];
                 String wantName = kv[1];
-                MovieSort.SortData found = null;
-                for (MovieSort.SortData o : original) {
-                    if (o == null || o.name == null) continue;
-                    String n = o.name.trim();
-                    if (wantName.equals("电影片") && n.contains("电影")) { found = o; break; }
-                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
-                    if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
-                    if (wantName.equals("少儿") && (n.contains("少儿") || n.contains("动漫"))) { found = o; break; }
-                    if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
-                    if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
-                }
                 MovieSort.SortData sd = new MovieSort.SortData();
-                if (found != null) {
-                    sd.id = found.id;
-                    sd.name = wantName;
-                } else {
-                    sd.id = wantId;
-                    sd.name = wantName;
-                }
-                // 强制修正：非凡影视固定tid
+                sd.id = wantId;
+                sd.name = wantName;
+                // 强制修正tid和内容区分
                 if (wantName.equals("电影片")) sd.id = "1";
                 else if (wantName.equals("连续剧")) sd.id = "2";
                 else if (wantName.equals("综艺片")) sd.id = "3";
-                else if (wantName.equals("少儿/动漫")) sd.id = "4";
-                else if (wantName.equals("动漫")) sd.id = "4"; // 动漫和少儿共用tid=4，非凡里动漫就是少儿
+                else if (wantName.equals("少儿")) sd.id = "4_shaoer"; // 标记少儿1-16岁动画片
+                else if (wantName.equals("动漫")) sd.id = "4_dongman"; // 标记动漫全类：国产/日韩/欧美/港台/海外
                 else if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
                 locked.add(sd);
             }
@@ -837,11 +832,22 @@ private void showPlayerSetting() {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    MovieSort.SortData real = data;
+                    MovieSort.SortData real = new MovieSort.SortData();
                     if ("home_latest_2025_2026".equals(data.id)) {
-                        real = new MovieSort.SortData();
-                        real.id = ""; // 空id = 非凡影视最新，默认就是今年最近的新电视剧、电影
-                        real.name = data.name; // 名字保持首页推荐不变
+                        real.id = ""; // 首页推荐 = 今年最近新电视剧、电影
+                        real.name = data.name;
+                    } else if ("4".equals(data.id) && "少儿".equals(data.name)) {
+                        real.id = "4"; // 少儿 = 国内1-16岁动画片 1-16岁
+                        real.name = "少儿";
+                        // 标记少儿内容，后续可通过搜索关键词过滤
+                        try { Hawk.put("SHAOER_FILTER", "少儿动画 儿童 1-16岁 益智"); } catch (Exception ignore) {}
+                    } else if ("5".equals(data.id)) {
+                        real.id = "5"; // 动漫 = 国产/日韩/欧美/港台/海外动漫 (wogg tid 5)
+                        real.name = "动漫";
+                        try { Hawk.put("DONGMAN_FILTER", "国产动漫 日韩动漫 欧美动漫 港台动漫 海外动漫"); } catch (Exception ignore) {}
+                    } else {
+                        real.id = data.id;
+                        real.name = data.name;
                     }
                     fragments.add(GridFragment.newInstance(real));
                 }
@@ -883,7 +889,46 @@ private void showPlayerSetting() {
     @Override protected void onPause() { super.onPause(); mHandler.removeCallbacksAndMessages(null); }
     @Subscribe(threadMode = ThreadMode.MAIN) public void refresh(RefreshEvent event) { if (event.type == RefreshEvent.TYPE_PUSH_URL) { if (ApiConfig.get().getSource("push_agent")!= null) { Intent newIntent = new Intent(mContext, DetailActivity.class); newIntent.putExtra("id", (String) event.obj); newIntent.putExtra("sourceKey", "push_agent"); newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(newIntent); } } }
     private void showFilterIcon(int count) { try { if (currentView == null) return; View v = currentView.findViewById(R.id.tvFilter); if (v == null) return; v.setVisibility(View.VISIBLE); } catch (Exception ignore) {} }
-    private final Runnable mDataRunnable = new Runnable() { @Override public void run() { if (sortChange) { sortChange = false; if (sortFocused!= currentSelected) { currentSelected = sortFocused; if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); } } } };
+    private final Runnable mDataRunnable = new Runnable() { 
+        @Override public void run() { 
+            if (sortChange) { 
+                sortChange = false; 
+                if (sortFocused!= currentSelected) { 
+                    currentSelected = sortFocused; 
+                    // 少儿和动漫用wogg源区分内容，避免资源一样
+                    try {
+                        String catName = "";
+                        if (sortAdapter != null && sortFocused < sortAdapter.getData().size()) {
+                            catName = sortAdapter.getData().get(sortFocused).name;
+                        }
+                        if ("少儿".equals(catName) || "动漫".equals(catName)) {
+                            // 少儿=国内1-16岁动画片，动漫=国产/日韩/欧美/港台/海外动漫，用wogg区分
+                            for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
+                                if ("wogg_4k".equals(sb.getKey())) {
+                                    if (!sb.getKey().equals(ApiConfig.get().getHomeSourceBean().getKey())) {
+                                        ApiConfig.get().setSourceBean(sb);
+                                        // 不重载全部，只切源，GridFragment会用新源加载
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            // 其他分类用非凡影视
+                            for (SourceBean sb : ApiConfig.get().getSourceBeanList()) {
+                                if ("ffzy_hd".equals(sb.getKey())) {
+                                    if (!sb.getKey().equals(ApiConfig.get().getHomeSourceBean().getKey())) {
+                                        ApiConfig.get().setSourceBean(sb);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception ignore) {}
+                    if (mViewPager!= null) mViewPager.setCurrentItem(sortFocused, false); 
+                } 
+            } 
+        } 
+    };
     @Override public boolean dispatchKeyEvent(KeyEvent event) { if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) showSiteSwitch(); return super.dispatchKeyEvent(event); }
     @Override protected void onDestroy() { super.onDestroy(); try { EventBus.getDefault().unregister(this); } catch (Exception ignore) {} }
     void showSiteSwitch() {
