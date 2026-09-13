@@ -511,34 +511,18 @@ private void showPlayerSetting() {
             // 换回普通版TVBox历史功能：跳官方HistoryActivity，不是对话框
             // 普通版就是你截图那种：顶部标题 历史记录 + 右上角删除/排序图标，空页面深蓝背景
             try {
-                Class<?> historyCls = null;
-                try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.HistoryActivity"); } catch (Exception ignore) {}
-                if (historyCls == null) {
-                    try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.RecordActivity"); } catch (Exception ignore) {}
-                }
-                if (historyCls == null) {
-                    try { historyCls = Class.forName("com.github.tvbox.osc.ui.activity.VodHistoryActivity"); } catch (Exception ignore) {}
-                }
-                if (historyCls != null) {
-                    Intent it = new Intent(this, historyCls);
-                    startActivity(it);
-                    return;
-                }
+                Intent it = new Intent(this, com.github.tvbox.osc.ui.activity.HistoryActivity.class);
+                startActivity(it);
+                return;
             } catch (Exception ignore) {}
-            // 兜底：用action方式调起，普通版TVBox支持
             try {
-                Intent intent = new Intent(this, com.github.tvbox.osc.ui.activity.DetailActivity.class);
-                // 如果上面反射没找到，尝试直接用系统HistoryActivity的intent
-                jumpActivity(Class.forName("com.github.tvbox.osc.ui.activity.HistoryActivity"));
+                Intent it = new Intent();
+                it.setClassName(this, "com.github.tvbox.osc.ui.activity.HistoryActivity");
+                startActivity(it);
                 return;
-            } catch (Exception e) {
-                // 最后兜底：跳搜索页，用户可以自己看历史
-                jumpActivity(com.github.tvbox.osc.ui.activity.HistoryActivity.class);
-                return;
-            }
+            } catch (Exception ignore) {}
         } catch (Exception e) {
             try {
-                // 终极兜底：如果项目里没有HistoryActivity类名，就跳Detail的history模式，至少不弹对话框
                 Toast.makeText(this, "正在打开历史记录...", Toast.LENGTH_SHORT).show();
                 Intent it = new Intent();
                 it.setClassName(this, "com.github.tvbox.osc.ui.activity.HistoryActivity");
@@ -807,7 +791,6 @@ private void showPlayerSetting() {
                     sd.id = found.id;
                     sd.name = wantName;
                     try { sd.filters = found.filters; } catch (Exception ignore) {}
-                    try { sd.filter = found.filter; } catch (Exception ignore) {}
                 } else {
                     if (wantName.equals("少儿")) sd.id = "4";
                     else if (wantName.equals("动漫")) sd.id = "5";
@@ -819,6 +802,7 @@ private void showPlayerSetting() {
                 locked.add(sd);
             }
 
+            List<MovieSort.SortData> list = locked;
             try { Hawk.put("LOCKED_SORT_LIST", list); } catch (Exception ignore) {}
 
             sortAdapter.setNewData(list);
