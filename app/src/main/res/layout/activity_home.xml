@@ -12,20 +12,18 @@
         android:layout_width="200dp"
         android:layout_height="match_parent">
 
-        <TextView android:id="@+id/tvName" android:text="👑非凡影视┃秒播" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/tvName" android:text="VIP影库 ULTRA BOX PRO" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
         <LinearLayout android:orientation="vertical" android:background="@drawable/bg_vip_pro" android:padding="10dp" android:layout_marginTop="12dp" android:layout_width="match_parent" android:layout_height="wrap_content">
             <TextView android:text="★ 超级VIP PRO" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             <TextView android:id="@+id/tvVipExpire" android:text="至 2027-09-11 · 无限观影" android:textColor="#8B8DA0" android:textSize="9sp" android:layout_marginTop="2dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- 把历史按钮换到这里来，原观看记录不要 -->
         <LinearLayout android:id="@+id/tvHistory" android:orientation="horizontal" android:gravity="center" android:focusable="true" android:clickable="true" android:background="@drawable/bg_vip_pro" android:padding="10dp" android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="36dp">
-            <TextView android:text="↻" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:text="历史" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:text="▶" android:textColor="#FFD76D" android:textSize="10sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            <TextView android:text="观看历史" android:textColor="#FFD76D" android:textSize="11sp" android:textStyle="bold" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <!-- 恢复成这样的导航：电影片/连续剧/综艺片/动漫片/动作片/喜剧片/爱情片/科幻片... -->
         <com.owen.tvrecyclerview.widget.TvRecyclerView android:id="@+id/mGridViewCategory" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="18dp" android:clipChildren="false" android:clipToPadding="false"/>
 
         <TextView android:id="@+id/tvMenu" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
@@ -38,24 +36,26 @@
 
         <LinearLayout android:id="@+id/topLayout" android:orientation="horizontal" android:gravity="center_vertical" android:background="#07080F" android:paddingStart="10dp" android:paddingEnd="10dp" android:layout_width="match_parent" android:layout_height="38dp">
 
-            <!-- 搜索恢复 -->
             <LinearLayout android:id="@+id/tvFind" android:orientation="horizontal" android:gravity="center_vertical" android:focusable="true" android:clickable="true" android:background="@drawable/bg_search_icon" android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_width="wrap_content" android:layout_height="28dp">
                 <TextView android:text="🔍" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
                 <TextView android:text="搜索" android:textColor="#9AA0B5" android:textSize="10sp" android:layout_marginStart="5dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <!-- 设置恢复 -->
             <LinearLayout android:id="@+id/tvPlayerSetting" android:orientation="horizontal" android:gravity="center_vertical" android:focusable="true" android:clickable="true" android:background="@drawable/bg_pill_dark" android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="28dp">
                 <TextView android:text="⚙" android:textColor="#FFD76D" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
                 <TextView android:text="设置" android:textColor="#FFD76D" android:textSize="10sp" android:layout_marginStart="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
+            <LinearLayout android:id="@+id/tvFilter" android:orientation="horizontal" android:gravity="center_vertical" android:focusable="true" android:clickable="true" android:background="@drawable/bg_pill_dark" android:paddingStart="12dp" android:paddingEnd="12dp" android:layout_marginStart="8dp" android:layout_width="wrap_content" android:layout_height="28dp">
+                <TextView android:text="☰" android:textColor="#FFD76D" android:textSize="11sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:text="筛选" android:textColor="#FFD76D" android:textSize="10sp" android:layout_marginStart="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+
             <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:gravity="center" android:orientation="horizontal">
-                <TextView android:id="@+id/tvDate" android:text="09月13日 | 周日 16:51" android:textColor="#7A7E94" android:textSize="11sp" android:letterSpacing="0.02" android:focusable="false" android:clickable="false" android:background="@null" android:gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvDate" android:text="09月12日 | 周六 17:23" android:textColor="#7A7E94" android:textSize="11sp" android:letterSpacing="0.02" android:focusable="false" android:clickable="false" android:background="@null" android:gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
             </LinearLayout>
 
             <View android:id="@+id/tvWifi" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
-            <View android:id="@+id/tvFilter" android:visibility="gone" android:layout_width="0dp" android:layout_height="0dp"/>
             <View android:layout_width="20dp" android:layout_height="1dp"/>
         </LinearLayout>
 
