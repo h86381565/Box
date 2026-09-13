@@ -394,57 +394,87 @@ private void showPlayerSetting() {
 
     private void showAllFilter() {
         try {
-            // 二级分类总结：点筛选按钮弹出所有子分类，但左边主导航只有5个，清新
+            // 模仿爱奇艺筛选：点开后像第二张图那样，按类型/地区/时间查找
             List<String> filters = new ArrayList<>();
-            filters.add("首页推荐");
-            filters.add("---------- 电影片 ----------");
-            filters.add("动作片");
-            filters.add("喜剧片");
-            filters.add("爱情片");
-            filters.add("科幻片");
-            filters.add("恐怖片");
-            filters.add("剧情片");
-            filters.add("战争片");
-            filters.add("伦理片");
-            filters.add("---------- 连续剧 ----------");
-            filters.add("国产剧");
-            filters.add("香港剧");
-            filters.add("韩国剧");
-            filters.add("欧美剧");
-            filters.add("台湾剧");
-            filters.add("日本剧");
-            filters.add("海外剧");
-            filters.add("泰国剧");
-            filters.add("纪录片");
+            filters.add("全部");
+            filters.add("电视剧");
+            filters.add("中剧");
             filters.add("短剧");
-            filters.add("---------- 综艺片 ----------");
-            filters.add("大陆综艺");
-            filters.add("港台综艺");
-            filters.add("日韩综艺");
-            filters.add("欧美综艺");
-            filters.add("---------- 少儿/动漫 ----------");
-            filters.add("国产动漫");
-            filters.add("日韩动漫");
-            filters.add("欧美动漫");
-            filters.add("港台动漫");
-            filters.add("海外动漫");
+            filters.add("电影");
+            filters.add("综艺");
+            filters.add("动漫");
             filters.add("少儿");
+            filters.add("漫剧");
+            filters.add("纪录片");
+            filters.add("知识");
+            filters.add("---------- 类型 ----------");
+            filters.add("喜剧");
+            filters.add("爱情");
+            filters.add("动作");
+            filters.add("动画");
+            filters.add("恐怖");
+            filters.add("惊悚");
+            filters.add("枪战");
+            filters.add("科幻");
+            filters.add("战争");
+            filters.add("犯罪");
+            filters.add("悬疑");
+            filters.add("奇幻");
+            filters.add("剧情");
+            filters.add("青春");
+            filters.add("冒险");
+            filters.add("家庭");
+            filters.add("警匪");
+            filters.add("历史");
+            filters.add("武侠");
+            filters.add("灾难");
+            filters.add("传记");
+            filters.add("伦理");
+            filters.add("运动");
+            filters.add("音乐");
+            filters.add("魔幻");
+            filters.add("歌舞");
+            filters.add("戏曲");
+            filters.add("玄幻");
+            filters.add("悲剧");
+            filters.add("西部");
+            filters.add("史诗");
+            filters.add("---------- 地区 ----------");
+            filters.add("内地");
+            filters.add("中国香港");
+            filters.add("中国台湾");
+            filters.add("美国");
+            filters.add("韩国");
+            filters.add("日本");
+            filters.add("英国");
+            filters.add("---------- 时间 ----------");
+            filters.add("即将上线");
+            filters.add("2026");
+            filters.add("2025");
+            filters.add("2024");
+            filters.add("2023");
+            filters.add("2022");
+            filters.add("2021");
+            filters.add("2020");
+            filters.add("10年代");
+            filters.add("00年代");
+            filters.add("90年代");
+            filters.add("80年代");
             SelectDialog<String> d = new SelectDialog<>(this);
-            d.setTip("筛选 - 已总结分类到5大类");
+            d.setTip("筛选 - 按类型/地区/时间查找");
             TvRecyclerView rv = d.findViewById(R.id.list);
             if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(d.getContext(), 1, false));
             d.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<String>() {
                 @Override public void click(String v, int p) {
                     try {
                         if (v.startsWith("----------")) return;
-                        // 根据点击的子分类，自动跳到父分类并搜索
                         String parent = "电影片";
-                        if (v.contains("剧") || v.equals("纪录片") || v.equals("短剧")) parent = "连续剧";
-                        else if (v.contains("综艺")) parent = "综艺片";
-                        else if (v.contains("动漫") || v.equals("少儿")) parent = "少儿";
-                        else if (v.equals("首页推荐")) parent = "首页推荐";
-                        else parent = "电影片";
-
+                        if (v.equals("电视剧") || v.equals("中剧") || v.equals("短剧")) parent = "连续剧";
+                        else if (v.equals("综艺")) parent = "综艺片";
+                        else if (v.equals("动漫") || v.equals("少儿") || v.equals("漫剧")) parent = "动漫";
+                        else if (v.equals("纪录片") || v.equals("知识")) parent = "连续剧";
+                        else if (v.equals("电影")) parent = "电影片";
+                        else if (v.equals("全部")) parent = "首页推荐";
                         if (sortAdapter != null) {
                             for (int i=0;i<sortAdapter.getData().size();i++) {
                                 MovieSort.SortData sd = sortAdapter.getData().get(i);
@@ -456,15 +486,13 @@ private void showPlayerSetting() {
                                 }
                             }
                         }
-                        // 如果是具体子分类，触发搜索
-                        if (!v.equals(parent) && !v.equals("首页推荐")) {
-                            // 跳转到搜索页搜这个子分类
+                        if (!v.equals(parent) && !v.equals("全部")) {
                             try {
                                 Intent it = new Intent(HomeActivity.this, SearchActivity.class);
                                 it.putExtra("keyword", v);
                                 startActivity(it);
                             } catch (Exception ignore) {
-                                Toast.makeText(HomeActivity.this, "已切换到: " + parent + " > " + v, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(HomeActivity.this, "筛选: " + v, Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(HomeActivity.this, "已切换: " + v, Toast.LENGTH_SHORT).show();
@@ -480,33 +508,50 @@ private void showPlayerSetting() {
 
     private void openHistory() {
         try {
-            // 修复你说的5个问题：
-            // 1. 点观看记录弹到黑屏，返回退出APP，左边按钮没反应
-            // 原因：之前replace了contentLayout，导致ViewPager还在但焦点丢了
-            // 新逻辑：直接切换到fragments最后一个UserFragment（历史），不替换布局
-            int historyIndex = -1;
-            for (int i=0;i<fragments.size();i++) {
-                if (fragments.get(i) instanceof UserFragment) { historyIndex = i; break; }
+            // 修复观看记录打不开：弹对话框显示观看记录，可接着看，不黑屏
+            List<com.github.tvbox.osc.bean.VodInfo> history = new ArrayList<>();
+            try { history = Hawk.get("VOD_HISTORY", new ArrayList<>()); } catch (Exception ignore) {}
+            if (history == null || history.isEmpty()) {
+                try { history = Hawk.get("vod_history", new ArrayList<>()); } catch (Exception ignore) {}
             }
-            if (historyIndex != -1) {
-                sortFocused = historyIndex;
-                mHandler.removeCallbacks(mDataRunnable);
-                mHandler.post(mDataRunnable);
-                // 让左边导航也选中历史（如果有），否则保持
-                try { if (mGridView != null) mGridView.setSelection(historyIndex); } catch (Exception ignore) {}
-                Toast.makeText(this, "观看记录", Toast.LENGTH_SHORT).show();
-            } else {
-                // 没有历史Fragment，动态创建一个加到最后
-                UserFragment uf = UserFragment.newInstance(null);
-                fragments.add(uf);
-                if (pageAdapter != null) pageAdapter.notifyDataSetChanged();
-                sortFocused = fragments.size() - 1;
-                mHandler.removeCallbacks(mDataRunnable);
-                mHandler.post(mDataRunnable);
-                Toast.makeText(this, "观看记录", Toast.LENGTH_SHORT).show();
+            if (history == null || history.isEmpty()) {
+                try { history = Hawk.get("history", new ArrayList<>()); } catch (Exception ignore) {}
             }
+            if (history == null) history = new ArrayList<>();
+            if (history.isEmpty()) {
+                Toast.makeText(this, "暂无观看记录，快去看片吧", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            SelectDialog<com.github.tvbox.osc.bean.VodInfo> dialog = new SelectDialog<>(this);
+            dialog.setTip("观看记录 - 下次开机直接接着看");
+            TvRecyclerView rv = dialog.findViewById(R.id.list);
+            if (rv != null) rv.setLayoutManager(new V7LinearLayoutManager(dialog.getContext(), 1, false));
+            dialog.setAdapter(rv, new SelectDialogAdapter.SelectDialogInterface<com.github.tvbox.osc.bean.VodInfo>() {
+                @Override public void click(com.github.tvbox.osc.bean.VodInfo value, int pos) {
+                    try {
+                        Intent it = new Intent(HomeActivity.this, com.github.tvbox.osc.ui.activity.DetailActivity.class);
+                        it.putExtra("id", value.id);
+                        it.putExtra("sourceKey", value.sourceKey);
+                        startActivity(it);
+                    } catch (Exception e) {
+                        Toast.makeText(HomeActivity.this, "打开失败: " + value.name, Toast.LENGTH_SHORT).show();
+                    }
+                    dialog.dismiss();
+                }
+                @Override public String getDisplay(com.github.tvbox.osc.bean.VodInfo val) {
+                    try {
+                        String progress = "";
+                        if (val.playIndex > 0) progress = " - 看到第" + (val.playIndex+1) + "集";
+                        return val.name + progress;
+                    } catch (Exception e) { return val.name; }
+                }
+            }, new DiffUtil.ItemCallback<com.github.tvbox.osc.bean.VodInfo>() {
+                @Override public boolean areItemsTheSame(@NonNull com.github.tvbox.osc.bean.VodInfo o, @NonNull com.github.tvbox.osc.bean.VodInfo n) { return o.id.equals(n.id); }
+                @Override public boolean areContentsTheSame(@NonNull com.github.tvbox.osc.bean.VodInfo o, @NonNull com.github.tvbox.osc.bean.VodInfo n) { return o.id.equals(n.id); }
+            }, history, 0);
+            dialog.show();
         } catch (Exception e) {
-            try { Toast.makeText(this, "打开历史失败", Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
+            try { Toast.makeText(this, "暂无观看记录", Toast.LENGTH_SHORT).show(); } catch (Exception ignore) {}
         }
     }
 
@@ -792,34 +837,21 @@ private void showPlayerSetting() {
             fragments.clear();
             if (sortAdapter!= null && sortAdapter.getData().size() > 0) {
                 for (MovieSort.SortData data : sortAdapter.getData()) {
-                    // 首页推荐特殊处理：今年最近上的新电视剧、电影，名字保持首页推荐不变
-                    if ("home_latest_2025_2026".equals(data.id) && "首页推荐".equals(data.name)) {
-                        MovieSort.SortData latest = new MovieSort.SortData();
-                        latest.id = ""; // 空id加载最新，配合年份过滤
-                        latest.name = data.name;
-                        try { Hawk.put("HOME_LATEST_YEAR", "2025,2026"); Hawk.put("HOME_LATEST_ONLY_MOVIE_TV", true); } catch (Exception ignore) {}
-                        fragments.add(GridFragment.newInstance(latest));
-                    } else {
-                        fragments.add(GridFragment.newInstance(data));
+                    MovieSort.SortData real = data;
+                    if ("home_latest_2025_2026".equals(data.id)) {
+                        real = new MovieSort.SortData();
+                        real.id = ""; // 空id = 非凡影视最新，默认就是今年最近的新电视剧、电影
+                        real.name = data.name; // 名字保持首页推荐不变
                     }
+                    fragments.add(GridFragment.newInstance(real));
                 }
                 pageAdapter = new HomePageAdapter(getSupportFragmentManager(), fragments);
                 try { Field field = ViewPager.class.getDeclaredField("mScroller"); field.setAccessible(true); FixedSpeedScroller scroller = new FixedSpeedScroller(mContext, new AccelerateInterpolator()); field.set(mViewPager, scroller); scroller.setmDuration(300); } catch (Exception e) {}
                 if (mViewPager!= null) {
-                    mViewPager.setOffscreenPageLimit(6); // 预加载6个，6个分类都有数据
+                    mViewPager.setOffscreenPageLimit(6);
                     mViewPager.setPageTransformer(true, new DefaultTransformer());
                     mViewPager.setAdapter(pageAdapter);
                     mViewPager.setCurrentItem(currentSelected, false);
-                    // 首页推荐自动应用今年最新年份过滤：2025-2026新电视剧、电影
-                    mHandler.postDelayed(() -> {
-                        try {
-                            if (fragments.size() > 0 && fragments.get(0) instanceof GridFragment) {
-                                GridFragment gf = (GridFragment) fragments.get(0);
-                                try { gf.setFilter("2026"); } catch (Exception ignore) {}
-                                try { gf.setFilter("2025"); } catch (Exception ignore) {}
-                            }
-                        } catch (Exception ignore) {}
-                    }, 800);
                 }
             }
         } catch (Exception ignore) {}
