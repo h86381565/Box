@@ -770,6 +770,8 @@ private void showPlayerSetting() {
             // 少儿(4)=国内少儿/国外少儿
             // 动漫(5)=国产/日韩/欧美/港台/海外动漫
             // 短剧(6)=国内短剧
+            // 修复：电影片/连续剧等找不到数据，电影数据跑到短剧，因为写死了1-6，非凡真实tid不是1-6
+            // 改为从接口返回的original里按名字匹配真实id
             List<MovieSort.SortData> locked = new ArrayList<>();
             String[][] clean = new String[][]{
                 {"", "首页推荐"},
@@ -784,16 +786,28 @@ private void showPlayerSetting() {
                 String[] kv = clean[idx];
                 String wantId = kv[0];
                 String wantName = kv[1];
+                MovieSort.SortData found = null;
+                for (MovieSort.SortData o : original) {
+                    if (o == null || o.name == null) continue;
+                    String n = o.name.trim();
+                    if (wantName.equals("电影片") && n.contains("电影")) { found = o; break; }
+                    if (wantName.equals("连续剧") && (n.contains("连续剧") || n.contains("电视剧"))) { found = o; break; }
+                    if (wantName.equals("综艺片") && n.contains("综艺")) { found = o; break; }
+                    if (wantName.equals("少儿") && n.contains("少儿")) { found = o; break; }
+                    if (wantName.equals("动漫") && n.contains("动漫")) { found = o; break; }
+                    if (wantName.equals("短剧") && n.contains("短剧")) { found = o; break; }
+                    if (wantName.equals("首页推荐") && (n.contains("推荐") || n.contains("首页"))) { found = o; break; }
+                }
                 MovieSort.SortData sd = new MovieSort.SortData();
-                sd.id = wantId;
-                sd.name = wantName;
-                if (wantName.equals("电影片")) sd.id = "1";
-                else if (wantName.equals("连续剧")) sd.id = "2";
-                else if (wantName.equals("综艺片")) sd.id = "3";
-                else if (wantName.equals("少儿")) sd.id = "4";
-                else if (wantName.equals("动漫")) sd.id = "5";
-                else if (wantName.equals("短剧")) sd.id = "6";
-                else if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
+                if (found != null) {
+                    sd.id = found.id; // 使用非凡真实tid，避免电影数据跑到短剧
+                    sd.name = wantName;
+                } else {
+                    sd.id = wantId;
+                    sd.name = wantName;
+                }
+                if (wantName.equals("首页推荐")) sd.id = "home_latest_2025_2026";
+                // 如果没匹配到，保留原始wantId作为兜底，但不再强制写死1-6
                 locked.add(sd);
             }
 
